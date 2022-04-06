@@ -22,8 +22,11 @@ namespace Safali
     /// </summary>
     public partial class MainWindow : Window
     {
+        //コードを見たそこの君
+        //えっちですよ!!
         public MainWindow()
         {
+            InitializeComponent();
 
         }
     }

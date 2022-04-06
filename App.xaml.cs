@@ -23,7 +23,7 @@ namespace Safali
             {
                 AcceptLanguageList = "ja,en-US;q=0.9,en;q=0.8",
                 CachePath = $@"{Path.GetTempPath()}safali\cache\",
-                UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36 Safali/1.0.0.0",
+                UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36 Safali/1.0",
                 LogSeverity = LogSeverity.Verbose
             };
             settings.CefCommandLineArgs.Add("enable-media-stream", "1");
