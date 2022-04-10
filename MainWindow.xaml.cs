@@ -3,6 +3,7 @@ using CefSharp.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -28,7 +30,7 @@ namespace Safali
         {
             InitializeComponent();
 
-            browser.Address = "https://google.co.jp";
+            browser.Address = "https://www.youtube.com/watch?v=TWI_UJFFbvE&ab_channel=%E3%83%A9%E3%83%A0%E3%83%80%E6%8A%80%E8%A1%93%E9%83%A8%2FYoidea";
             browser.BrowserSettings.Javascript = CefState.Enabled;
             // document.execCommandでのcopy&pasteを有効にする。
             browser.BrowserSettings.JavascriptDomPaste = CefState.Enabled;
@@ -37,15 +39,54 @@ namespace Safali
             // フォントサイズを設定する。(レイアウトがずれる場合があるので注意)
             browser.BrowserSettings.DefaultFontSize = 16;
             browser.KeyboardHandler = new Handlers.KeyboardHandler();
+            browser.RequestHandler = new Handlers.RequestHandler();
+            browser.DisplayHandler = new Handlers.DisplayHandler();
+            browser.PreviewMouseWheel += CefBrowser_PreviewMouseWheel;
+            browser.KeyUp += CefBrowser_KeyUp;
+        }
 
-            Auth auth = new Auth();
-            auth.Show();
+        private void CefBrowser_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+
+            if (Keyboard.Modifiers != ModifierKeys.Control)
+                return;
+
+            if (e.Delta > 0)
+                browser.ZoomInCommand.Execute(null);
+            else
+                browser.ZoomOutCommand.Execute(null);
+            e.Handled = true;
+        }
+
+        private void CefBrowser_KeyUp(object sender, KeyEventArgs e)
+        {
+
+            if (Keyboard.Modifiers != ModifierKeys.Control)
+                return;
+
+            if (e.Key == Key.Add)
+                browser.ZoomInCommand.Execute(null);
+            if (e.Key == Key.Subtract)
+                browser.ZoomOutCommand.Execute(null);
+            if (e.Key == Key.NumPad0)
+                browser.ZoomLevel = 0;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Application.Current.Shutdown();
         }
+
+        public static MainWindow getMainFrame(IBrowser browser)
+        {
+            IntPtr hWnd = browser.GetHost().GetWindowHandle();
+            var rootVisual = HwndSource.FromHwnd(hWnd).RootVisual;
+            return (MainWindow)rootVisual;
+        }
+
+        // Win32のGetParent
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
+        private static extern IntPtr GetParent(IntPtr hWnd);
     }
 
     public class PasswordBoxMonitor : DependencyObject
@@ -106,3 +147,5 @@ namespace Safali
         }
     }
 }
+
+

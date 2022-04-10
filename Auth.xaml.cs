@@ -28,10 +28,21 @@ namespace Safali
 
         public string Password { get; private set; }
 
-        private void Confirm_Click(object sender, EventArgs e)
+        private void Confirm_Click(object sender, RoutedEventArgs e)
         {
             UserName = Username.Text;
             Password = PassWord.Password;
+            this.DialogResult = true;
+        }
+
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

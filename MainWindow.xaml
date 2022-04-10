@@ -10,8 +10,12 @@
         xmlns:System="clr-namespace:System;assembly=mscorlib"
         Title="MainWindow" Height="450" Width="800" Icon="/Safali.png" Closing="Window_Closing">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="31*"/>
+            <ColumnDefinition Width="129*"/>
+        </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.ColumnSpan="2">
             <!--  Webブラウザコントロール  -->
             <cef:ChromiumWebBrowser
                 x:Name="browser"
