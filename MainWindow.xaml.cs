@@ -30,7 +30,7 @@ namespace Safali
         {
             InitializeComponent();
 
-            browser.Address = "https://www.youtube.com/watch?v=TWI_UJFFbvE&ab_channel=%E3%83%A9%E3%83%A0%E3%83%80%E6%8A%80%E8%A1%93%E9%83%A8%2FYoidea";
+            browser.Address = "https://expired.badssl.com/";
             browser.BrowserSettings.Javascript = CefState.Enabled;
             // document.execCommandでのcopy&pasteを有効にする。
             browser.BrowserSettings.JavascriptDomPaste = CefState.Enabled;
