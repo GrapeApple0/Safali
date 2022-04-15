@@ -26,11 +26,11 @@ namespace Safali
     {
         //コードを見たそこの君
         //えっちですよ!!
+        private Window _previewWindow;
         public MainWindow()
         {
             InitializeComponent();
-
-            browser.Address = "https://expired.badssl.com/";
+            browser.Address = @"https://www.youtube.com/playlist?list=PLAuaj5UkpoX-5qWuEG70l_OTxyALXpvzy";
             browser.BrowserSettings.Javascript = CefState.Enabled;
             // document.execCommandでのcopy&pasteを有効にする。
             browser.BrowserSettings.JavascriptDomPaste = CefState.Enabled;
@@ -47,7 +47,6 @@ namespace Safali
 
         private void CefBrowser_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-
             if (Keyboard.Modifiers != ModifierKeys.Control)
                 return;
 
@@ -74,7 +73,73 @@ namespace Safali
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Application.Current.Shutdown();
+            
+        }
+
+        private static TabItem GetTabItem(object sender)
+        {
+            var control = sender as Control;
+            if (control == null)
+                return null;
+            var parent = control.TemplatedParent as ContentPresenter;
+            if (parent == null)
+                return null;
+            return parent.TemplatedParent as TabItem;
+        }
+
+        void previewWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            var window = sender as Window;
+            if (window != null)
+                window.Top += window.ActualHeight - 30;
+        }
+
+        private void TabItem_MouseEnter(object sender, MouseEventArgs e)
+        {
+            var tabItem = GetTabItem(sender);
+            if (tabItem != null)
+            {
+                var vb = new VisualBrush(tabItem.Content as Visual)
+                {
+                    //600,400
+                    Viewport = new Rect(new Size(250, 100)),
+                    Viewbox = new Rect(new Size(250, 100)),
+                };
+
+                var myRectangle = new Rectangle
+                {
+                    Width = 160,
+                    Height = 80,
+                    Stroke = Brushes.Transparent,
+                    Margin = new Thickness(0, 0, 0, 0),
+                    Fill = vb,
+                };
+
+                Point renderedLocation = ((Control)sender).TranslatePoint(new Point(0, 0), this);
+
+                _previewWindow = new Window
+                {
+                    WindowStyle = WindowStyle.None,
+                    SizeToContent = SizeToContent.WidthAndHeight,
+                    ShowInTaskbar = false,
+                    Content = myRectangle,
+                    Left = renderedLocation.X + Left,
+                    Top = renderedLocation.Y + Top,
+                };
+                // Top can only be calculated when the size is changed to the content, 
+                // therefore the SizeChanged-event is triggered.
+                _previewWindow.SizeChanged += previewWindow_SizeChanged;
+                _previewWindow.Show();
+            }
+
+            e.Handled = true;
+        }
+
+        private void TabItem_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (_previewWindow != null)
+                _previewWindow.Close();
+            _previewWindow = null;
         }
 
         public static MainWindow getMainFrame(IBrowser browser)
@@ -83,10 +148,6 @@ namespace Safali
             var rootVisual = HwndSource.FromHwnd(hWnd).RootVisual;
             return (MainWindow)rootVisual;
         }
-
-        // Win32のGetParent
-        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
-        private static extern IntPtr GetParent(IntPtr hWnd);
     }
 
     public class PasswordBoxMonitor : DependencyObject
