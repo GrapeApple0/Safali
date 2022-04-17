@@ -1,20 +1,11 @@
 ﻿using CefSharp;
 using CefSharp.Wpf;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace Safali
@@ -30,7 +21,7 @@ namespace Safali
         public MainWindow()
         {
             InitializeComponent();
-            browser.Address = @"https://www.youtube.com/playlist?list=PLAuaj5UkpoX-5qWuEG70l_OTxyALXpvzy";
+            browser.Address = @"https://yahoo.co.jp";
             browser.BrowserSettings.Javascript = CefState.Enabled;
             // document.execCommandでのcopy&pasteを有効にする。
             browser.BrowserSettings.JavascriptDomPaste = CefState.Enabled;
@@ -63,11 +54,11 @@ namespace Safali
             if (Keyboard.Modifiers != ModifierKeys.Control)
                 return;
 
-            if (e.Key == Key.Add)
+            if (e.Key == Key.OemPlus || e.Key == Key.Add)
                 browser.ZoomInCommand.Execute(null);
-            if (e.Key == Key.Subtract)
+            if (e.Key == Key.OemMinus || e.Key == Key.Subtract)
                 browser.ZoomOutCommand.Execute(null);
-            if (e.Key == Key.NumPad0)
+            if (e.Key == Key.D0 || e.Key == Key.NumPad0)
                 browser.ZoomLevel = 0;
         }
 
@@ -147,6 +138,24 @@ namespace Safali
             IntPtr hWnd = browser.GetHost().GetWindowHandle();
             var rootVisual = HwndSource.FromHwnd(hWnd).RootVisual;
             return (MainWindow)rootVisual;
+        }
+
+        private void address_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                MessageBox.Show("Test");
+            }
+        }
+
+        private void Back_Click(object sender, RoutedEventArgs e)
+        {
+            
+        }
+
+        private void Next_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 

@@ -117,7 +117,6 @@ namespace Safali.Handlers
     {
         public bool GetAuthCredentials(IWebBrowser chromiumWebBrowser, IBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback)
         {
-
             // コントロールのトップレベルのコントロールを取得（SimpleBrowserFrame）
             MainWindow mainFrame = MainWindow.getMainFrame(browser);
 
@@ -163,7 +162,6 @@ namespace Safali.Handlers
 
         public bool OnCertificateError(IWebBrowser chromiumWebBrowser, IBrowser browser, CefErrorCode errorCode, string requestUrl, ISslInfo sslInfo, IRequestCallback callback)
         {
- 
             callback.Continue(true);
             return true;
         }
@@ -211,11 +209,6 @@ namespace Safali.Handlers
         {
         }
 
-        public bool OnAutoResize(IWebBrowser chromiumWebBrowser, IBrowser browser, Size newSize)
-        {
-            // ブラウザのデフォルト処理を行う
-            return false;
-        }
 
         public bool OnAutoResize(IWebBrowser chromiumWebBrowser, IBrowser browser, CefSharp.Structs.Size newSize)
         {
@@ -279,7 +272,6 @@ namespace Safali.Handlers
 
         public void OnTitleChanged(IWebBrowser chromiumWebBrowser, TitleChangedEventArgs titleChangedArgs)
         {
-            
             // コントロールのトップレベルのコントロールを取得（SimpleBrowserFrame）
             MainWindow mainFrame = MainWindow.getMainFrame(titleChangedArgs.Browser);
 

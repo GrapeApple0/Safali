@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -31,7 +34,7 @@ namespace Safali
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
             UserName = Username.Text;
-            Password = PassWord.Password;
+            Password = PlainPW.Text;
             this.DialogResult = true;
         }
 
@@ -41,6 +44,11 @@ namespace Safali
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void PasswordChanged(object sender, RoutedEventArgs e)
         {
 
         }

@@ -5,9 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Safali"
         mc:Ignorable="d"
-        Title="Auth" Height="195" Width="345">
+        Title="Auth" Height="195" Width="345" WindowStyle="ToolWindow" ResizeMode="NoResize">
+    <Window.DataContext>
+        <local:PWBox/>
+    </Window.DataContext>
     <Grid Margin="0,0,0,0">
-        <TextBox x:Name="Username" HorizontalAlignment="Center" Margin="0,42,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="299">
+        <TextBox x:Name="Username" HorizontalAlignment="Center" Margin="0,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="300">
             <TextBox.Resources>
                 <VisualBrush x:Key="HelpBrush" TileMode="None" Opacity="0.3" Stretch="None" AlignmentX="Left">
                     <VisualBrush.Transform>
@@ -39,38 +42,39 @@
                 </Style>
             </TextBox.Style>
         </TextBox>
-        <PasswordBox x:Name="PassWord" HorizontalAlignment="Center" Margin="0,86,0,0" VerticalAlignment="Top" Width="299">
-            <PasswordBox.Style>
-                <Style TargetType="PasswordBox">
+        <TextBox x:Name="PassWord" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Margin="0,90,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Width="300">
+            <TextBox.Resources>
+                <VisualBrush x:Key="HelpBrush" TileMode="None" Opacity="0.3" Stretch="None" AlignmentX="Left">
+                    <VisualBrush.Transform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform/>
+                            <TranslateTransform X="5"/>
+                        </TransformGroup>
+                    </VisualBrush.Transform>
+                    <VisualBrush.Visual>
+                        <TextBlock  Text="Enter Password..." Margin="23,0,0,0"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </TextBox.Resources>
+            <TextBox.Style>
+                <Style TargetType="TextBox">
                     <Setter Property="Height" Value="18"/>
                     <Setter Property="HorizontalAlignment" Value="Left"/>
                     <Setter Property="VerticalAlignment" Value="Center"/>
-                    <Setter Property="local:PasswordBoxMonitor.IsMonitoring" Value="True"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="{x:Type PasswordBox}">
-                                <Border Name="Bd" Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" SnapsToDevicePixels="True">
-                                    <Grid>
-                                        <ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                                        <StackPanel Orientation="Horizontal" Visibility="Collapsed" Name="myStackPanel">
-                                            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="LightGray" Text="  Enter Password..."/>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsEnabled" Value="false">
-                                        <Setter Property="Visibility" TargetName="myStackPanel" Value="Collapsed"/>
-                                    </Trigger>
-                                    <Trigger Property="local:PasswordBoxMonitor.PasswordLength" Value="0">
-                                        <Setter Property="Visibility" TargetName="myStackPanel" Value="Visible"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="Text" Value="{x:Null}">
+                            <Setter Property="Background" Value="{StaticResource HelpBrush}"/>
+                        </Trigger>
+                        <Trigger Property="Text" Value="">
+                            <Setter Property="Background" Value="{StaticResource HelpBrush}"/>
+                        </Trigger>
+                    </Style.Triggers>
                 </Style>
-            </PasswordBox.Style>
-        </PasswordBox>
+            </TextBox.Style>
+        </TextBox>
+        <TextBlock x:Name="PlainPW" Text="{Binding PlainPassword}" Foreground="Gray" TextAlignment="Right" FontSize="16" HorizontalAlignment="Right" Margin="0,15,20,0" Visibility="Hidden"/>
         <Button Content="OK" HorizontalAlignment="Left" Margin="205,129,0,0" VerticalAlignment="Top" Width="45" Click="Confirm_Click"/>
         <Button Content="Cancel" HorizontalAlignment="Left" Margin="270,129,0,0" VerticalAlignment="Top" Width="44" Click="Cancel_Click"/>
     </Grid>

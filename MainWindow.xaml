@@ -9,7 +9,7 @@
         xmlns:local="clr-namespace:Safali"
         mc:Ignorable="d"
         xmlns:System="clr-namespace:System;assembly=mscorlib"
-        Title="MainWindow" Height="400" Width="600" Icon="/Safali.png" Closing="Window_Closing" MinWidth="600" MinHeight="400">
+        Title="MainWindow" Height="385" Width="600" Icon="/Safali.png" Closing="Window_Closing" MinWidth="600" MinHeight="400">
     <Window.Resources>
         <Style x:Key="TabItemContainerStyle" TargetType="{x:Type TabItem}">
             <Setter Property="HeaderTemplate">
@@ -27,23 +27,43 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
     </Window.Resources>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="23*"/>
-            <ColumnDefinition Width="9*"/>
-        </Grid.ColumnDefinitions>
-        <TabControl x:Name="tabControl" ItemContainerStyle="{StaticResource TabItemContainerStyle}" Grid.ColumnSpan="2">
+        <Grid Margin="0,3,0,0" Height="24" VerticalAlignment="Top">
+            <TextBox x:Name="address" TextWrapping="Wrap" Text="TextBox" Height="19" VerticalAlignment="Center" Margin="120,0,120,0" KeyDown="address_KeyDown" Grid.ColumnSpan="2">
+                <TextBox.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="3"/>
+                    </Style>
+                </TextBox.Resources>
+            </TextBox>
+            <Button x:Name="Back" Content="Button" HorizontalAlignment="Left" Margin="60,1,0,3" Width="20" Click="Back_Click" Height="20">
+                <Button.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="3"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+            <Button x:Name="Next" Content="Button" HorizontalAlignment="Left" Margin="81,1,0,0" Width="20" Click="Next_Click" Height="20" VerticalAlignment="Top">
+                <Button.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="3"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </Grid>
+
+        <TabControl x:Name="tabControl" ItemContainerStyle="{StaticResource TabItemContainerStyle}" Margin="0,24,0,0">
             <TabItem Header="tabItem1" Name="tabItem1">
                 <Grid>
-                    <cef:ChromiumWebBrowser
-                x:Name="browser"
-                Margin="0,0,0,0"/>
+                    <cef:ChromiumWebBrowser x:Name="browser" Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
                 </Grid>
             </TabItem>
             <TabItem Header="Tab 2"></TabItem>
             <TabItem Header="Tab 3"></TabItem>
+
         </TabControl>
+
     </Grid>
 </Window>
