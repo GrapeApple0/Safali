@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:shell="http://schemas.microsoft.com/winfx/2006/xaml/presentation/shell"
         xmlns:cef="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
-        xmlns:tab="clr-namespace:Safali"
+        xmlns:tab="clr-namespace:Safali.View"
         xmlns:local="clr-namespace:Safali"
         mc:Ignorable="d"
         xmlns:System="clr-namespace:System;assembly=mscorlib"
@@ -20,6 +20,7 @@
                                 <Style TargetType="Label">
                                     <EventSetter Event="MouseEnter" Handler="TabItem_MouseEnter"/>
                                     <EventSetter Event="MouseLeave" Handler="TabItem_MouseLeave"/>
+                                    <EventSetter Event="MouseMove" Handler="TabItem_MouseMove"/>
                                 </Style>
                             </Label.Style>
                         </Label>
@@ -27,17 +28,18 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
     </Window.Resources>
     <Grid>
         <Grid Margin="0,3,0,0" Height="24" VerticalAlignment="Top">
-            <TextBox x:Name="address" TextWrapping="Wrap" Text="TextBox" Height="19" VerticalAlignment="Center" Margin="120,0,120,0" KeyDown="address_KeyDown" Grid.ColumnSpan="2">
+            <TextBox x:Name="address" TextWrapping="Wrap" Text="TextBox" Height="19" VerticalAlignment="Top" Margin="120,0,120,0" KeyDown="address_KeyDown" Grid.ColumnSpan="2" HorizontalAlignment="Stretch">
                 <TextBox.Resources>
                     <Style TargetType="{x:Type Border}">
                         <Setter Property="CornerRadius" Value="3"/>
                     </Style>
                 </TextBox.Resources>
             </TextBox>
-            <Button x:Name="Back" Content="Button" HorizontalAlignment="Left" Margin="60,1,0,3" Width="20" Click="Back_Click" Height="20">
+            <Button x:Name="Back" Content="Button" HorizontalAlignment="Left" Margin="60,1,0,3" Width="20" Click="Back_Click" Height="20" VerticalAlignment="Top">
                 <Button.Resources>
                     <Style TargetType="{x:Type Border}">
                         <Setter Property="CornerRadius" Value="3"/>
@@ -53,15 +55,144 @@
             </Button>
         </Grid>
 
-        <TabControl x:Name="tabControl" ItemContainerStyle="{StaticResource TabItemContainerStyle}" Margin="0,24,0,0">
-            <TabItem Header="tabItem1" Name="tabItem1">
+        <TabControl x:Name="tabControl" ItemContainerStyle="{StaticResource TabItemContainerStyle}" Margin="0,24,0,0" HorizontalAlignment="Stretch">
+            <TabControl.Template>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto"  VerticalScrollBarVisibility="Hidden" Margin="0,-2,0,0" Height="48" >
+                            <TabPanel x:Name="HeaderPanel"
+                          Panel.ZIndex ="1" 
+                          KeyboardNavigation.TabIndex="1"
+                          Grid.Column="0"
+                          Grid.Row="0"
+                          Margin="2,-1,2,0"
+                          IsItemsHost="true"/>
+                        </ScrollViewer>
+                        <ContentPresenter x:Name="PART_SelectedContentHost"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                      Margin="{TemplateBinding Padding}"
+                                      ContentSource="SelectedContent" Grid.Row="1"/>
+                    </Grid>
+                </ControlTemplate>
+            </TabControl.Template>
+            <TabItem Header="tabItem1">
                 <Grid>
                     <cef:ChromiumWebBrowser x:Name="browser" Margin="0,0,0,0">
                     </cef:ChromiumWebBrowser>
                 </Grid>
             </TabItem>
-            <TabItem Header="Tab 2"></TabItem>
-            <TabItem Header="Tab 3"></TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
+            <TabItem Header="tabItem1">
+                <Grid>
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    </cef:ChromiumWebBrowser>
+                </Grid>
+            </TabItem>
 
         </TabControl>
 

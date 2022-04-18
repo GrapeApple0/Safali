@@ -1,8 +1,11 @@
 ﻿using CefSharp;
 using CefSharp.Wpf;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -21,7 +24,7 @@ namespace Safali
         public MainWindow()
         {
             InitializeComponent();
-            browser.Address = @"https://yahoo.co.jp";
+            browser.Address = @"http://abehiroshi.la.coocan.jp";
             browser.BrowserSettings.Javascript = CefState.Enabled;
             // document.execCommandでのcopy&pasteを有効にする。
             browser.BrowserSettings.JavascriptDomPaste = CefState.Enabled;
@@ -78,13 +81,6 @@ namespace Safali
             return parent.TemplatedParent as TabItem;
         }
 
-        void previewWindow_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            var window = sender as Window;
-            if (window != null)
-                window.Top += window.ActualHeight - 30;
-        }
-
         private void TabItem_MouseEnter(object sender, MouseEventArgs e)
         {
             var tabItem = GetTabItem(sender);
@@ -114,15 +110,12 @@ namespace Safali
                     SizeToContent = SizeToContent.WidthAndHeight,
                     ShowInTaskbar = false,
                     Content = myRectangle,
-                    Left = renderedLocation.X + Left,
-                    Top = renderedLocation.Y + Top,
+                    Topmost = true,
+                    Left = ExtensionClass.GetMousePosition().X - 70,
+                    Top = ExtensionClass.GetMousePosition().Y + 30,
                 };
-                // Top can only be calculated when the size is changed to the content, 
-                // therefore the SizeChanged-event is triggered.
-                _previewWindow.SizeChanged += previewWindow_SizeChanged;
                 _previewWindow.Show();
             }
-
             e.Handled = true;
         }
 
@@ -131,6 +124,13 @@ namespace Safali
             if (_previewWindow != null)
                 _previewWindow.Close();
             _previewWindow = null;
+        }
+
+        private void TabItem_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_previewWindow != null)
+                _previewWindow.Left = ExtensionClass.GetMousePosition().X - 70;
+                _previewWindow.Top = ExtensionClass.GetMousePosition().Y + 30;
         }
 
         public static MainWindow getMainFrame(IBrowser browser)
@@ -150,12 +150,20 @@ namespace Safali
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            
+            var chromium = ExtensionClass.FindVisualChilds<ChromiumWebBrowser>(this).ElementAtOrDefault(0);
+            if (chromium.CanGoBack)
+            {
+                chromium.Back();
+            }
         }
 
         private void Next_Click(object sender, RoutedEventArgs e)
         {
-
+            var chromium = ExtensionClass.FindVisualChilds<ChromiumWebBrowser>(this).ElementAtOrDefault(0);
+            if (chromium.CanGoForward)
+            {
+                chromium.Forward();
+            }
         }
     }
 

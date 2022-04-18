@@ -42,15 +42,5 @@ namespace Safali
         {
             this.DialogResult = false;
         }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void PasswordChanged(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }
