@@ -24,7 +24,7 @@ namespace Safali
         public MainWindow()
         {
             InitializeComponent();
-            browser.Address = @"http://abehiroshi.la.coocan.jp";
+            browser.Address = @"https://lms.catchon.jp/";
             browser.BrowserSettings.Javascript = CefState.Enabled;
             // document.execCommandでのcopy&pasteを有効にする。
             browser.BrowserSettings.JavascriptDomPaste = CefState.Enabled;
@@ -35,6 +35,7 @@ namespace Safali
             browser.KeyboardHandler = new Handlers.KeyboardHandler();
             browser.RequestHandler = new Handlers.RequestHandler();
             browser.DisplayHandler = new Handlers.DisplayHandler();
+            browser.LifeSpanHandler = new Handlers.LifespanHandler();
             browser.PreviewMouseWheel += CefBrowser_PreviewMouseWheel;
             browser.KeyUp += CefBrowser_KeyUp;
         }
@@ -115,6 +116,7 @@ namespace Safali
                     Top = ExtensionClass.GetMousePosition().Y + 30,
                 };
                 _previewWindow.Show();
+                ForceActivate();
             }
             e.Handled = true;
         }
@@ -133,12 +135,7 @@ namespace Safali
                 _previewWindow.Top = ExtensionClass.GetMousePosition().Y + 30;
         }
 
-        public static MainWindow getMainFrame(IBrowser browser)
-        {
-            IntPtr hWnd = browser.GetHost().GetWindowHandle();
-            var rootVisual = HwndSource.FromHwnd(hWnd).RootVisual;
-            return (MainWindow)rootVisual;
-        }
+
 
         private void address_KeyDown(object sender, KeyEventArgs e)
         {
@@ -150,7 +147,7 @@ namespace Safali
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            var chromium = ExtensionClass.FindVisualChilds<ChromiumWebBrowser>(this).ElementAtOrDefault(0);
+            var chromium = ExtensionClass.FindVisualChilds<ChromiumWebBrowser>((DependencyObject)tabControl.SelectedContent).ElementAtOrDefault(0);
             if (chromium.CanGoBack)
             {
                 chromium.Back();
@@ -159,11 +156,39 @@ namespace Safali
 
         private void Next_Click(object sender, RoutedEventArgs e)
         {
-            var chromium = ExtensionClass.FindVisualChilds<ChromiumWebBrowser>(this).ElementAtOrDefault(0);
+            var chromium = ExtensionClass.FindVisualChilds<ChromiumWebBrowser>((DependencyObject)tabControl.SelectedContent).ElementAtOrDefault(0);
+            MessageBox.Show(tabControl.SelectedIndex.ToString());
             if (chromium.CanGoForward)
             {
                 chromium.Forward();
             }
+        }
+
+        private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var chromium = ExtensionClass.FindVisualChilds<ChromiumWebBrowser>((DependencyObject)tabControl.SelectedContent).ElementAtOrDefault(0);
+            if (chromium.Title == "" || chromium.Title == null) {
+                this.Title = "New Tab - Safali for Windows"; }
+            else
+                this.Title = chromium.Title + " - Safali for Windows";
+        }
+
+        public void ForceActivate()
+        {
+            this.Activate();
+
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(100);
+                Dispatcher.Invoke(() => this.Focus());
+            });
+        }
+
+        private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            ScrollViewer scv = (ScrollViewer)sender;
+            scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
+            e.Handled = true;
         }
     }
 

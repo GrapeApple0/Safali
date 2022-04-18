@@ -118,7 +118,7 @@ namespace Safali.Handlers
         public bool GetAuthCredentials(IWebBrowser chromiumWebBrowser, IBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback)
         {
             // コントロールのトップレベルのコントロールを取得（SimpleBrowserFrame）
-            MainWindow mainFrame = MainWindow.getMainFrame(browser);
+            Window mainFrame = ExtensionClass.getMainFrame(browser);
 
             if (mainFrame != null)
             {
@@ -172,8 +172,7 @@ namespace Safali.Handlers
 
         public bool OnOpenUrlFromTab(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl, WindowOpenDisposition targetDisposition, bool userGesture)
         {
-            // Ctrl+左クリックでの別Tab表示は許可しない。
-            return false;
+            return true;
         }
 
         public void OnPluginCrashed(IWebBrowser chromiumWebBrowser, IBrowser browser, string pluginPath)
@@ -273,7 +272,16 @@ namespace Safali.Handlers
         public void OnTitleChanged(IWebBrowser chromiumWebBrowser, TitleChangedEventArgs titleChangedArgs)
         {
             // コントロールのトップレベルのコントロールを取得（SimpleBrowserFrame）
-            MainWindow mainFrame = MainWindow.getMainFrame(titleChangedArgs.Browser);
+            Window mainFrame = new Window();
+            try
+            {
+                mainFrame = ExtensionClass.getMainFrame(titleChangedArgs.Browser);
+            }
+            catch
+            {
+
+            }
+
 
             if (mainFrame != null)
             {
@@ -281,7 +289,10 @@ namespace Safali.Handlers
                 mainFrame.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     // タイトル文字列を変更する
-                    mainFrame.Title = titleChangedArgs.Title + " - Safali for Windows";
+                    if (titleChangedArgs.Title == "")
+                        mainFrame.Title = "New Tab - Safali for Windows";
+                    else
+                        mainFrame.Title = titleChangedArgs.Title + " - Safali for Windows";
                 }));
             }
         }
@@ -289,6 +300,30 @@ namespace Safali.Handlers
         public bool OnTooltipChanged(IWebBrowser chromiumWebBrowser, ref string text)
         {
             return false;
+        }
+    }
+
+    class LifespanHandler : ILifeSpanHandler
+    {
+        public bool OnBeforePopup(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl,
+            string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures,
+            IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
+        {
+            newBrowser = null;
+            return false;
+        }
+
+        public void OnAfterCreated(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+        }
+
+        public bool DoClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            return false;
+        }
+
+        public void OnBeforeClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
         }
     }
 }

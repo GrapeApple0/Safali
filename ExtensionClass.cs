@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CefSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -52,6 +53,13 @@ namespace Safali
             GetCursorPos(ref w32Mouse);
 
             return new Point(w32Mouse.X, w32Mouse.Y);
+        }
+
+        public static Window getMainFrame(IBrowser browser)
+        {
+            IntPtr hWnd = browser.GetHost().GetWindowHandle();
+            var rootVisual = HwndSource.FromHwnd(hWnd).RootVisual;
+            return (Window)rootVisual;
         }
     }
 }

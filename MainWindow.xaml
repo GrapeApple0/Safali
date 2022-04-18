@@ -9,7 +9,7 @@
         xmlns:local="clr-namespace:Safali"
         mc:Ignorable="d"
         xmlns:System="clr-namespace:System;assembly=mscorlib"
-        Title="MainWindow" Height="385" Width="600" Icon="/Safali.png" Closing="Window_Closing" MinWidth="600" MinHeight="400">
+        Title="MainWindow" Height="600" Width="800" Icon="/Safali.png" Closing="Window_Closing" MinWidth="600" MinHeight="800">
     <Window.Resources>
         <Style x:Key="TabItemContainerStyle" TargetType="{x:Type TabItem}">
             <Setter Property="HeaderTemplate">
@@ -31,7 +31,7 @@
 
     </Window.Resources>
     <Grid>
-        <Grid Margin="0,3,0,0" Height="24" VerticalAlignment="Top">
+        <Grid Margin="0,3,0,0" Height="24" VerticalAlignment="Top" Grid.ColumnSpan="2">
             <TextBox x:Name="address" TextWrapping="Wrap" Text="TextBox" Height="19" VerticalAlignment="Top" Margin="120,0,120,0" KeyDown="address_KeyDown" Grid.ColumnSpan="2" HorizontalAlignment="Stretch">
                 <TextBox.Resources>
                     <Style TargetType="{x:Type Border}">
@@ -55,7 +55,7 @@
             </Button>
         </Grid>
 
-        <TabControl x:Name="tabControl" ItemContainerStyle="{StaticResource TabItemContainerStyle}" Margin="0,24,0,0" HorizontalAlignment="Stretch">
+        <TabControl x:Name="tabControl" ItemContainerStyle="{StaticResource TabItemContainerStyle}" Margin="0,15,0,-4" SelectionChanged="tabControl_SelectionChanged">
             <TabControl.Template>
                 <ControlTemplate TargetType="TabControl">
                     <Grid>
@@ -63,14 +63,52 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition />
                         </Grid.RowDefinitions>
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto"  VerticalScrollBarVisibility="Hidden" Margin="0,-2,0,0" Height="48" >
+                        <ScrollViewer ScrollViewer.CanContentScroll="True"  HorizontalScrollBarVisibility="Hidden"  VerticalScrollBarVisibility="Disabled" Margin="0,13,0,0" Height="48" VerticalAlignment="Top" Visibility="Visible" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" >
+                            <ScrollViewer.Resources>
+                                <Style x:Key="RepeatButtonTransparent" TargetType="{x:Type RepeatButton}">
+                                    <Setter Property="OverridesDefaultStyle" Value="true"/>
+                                    <Setter Property="Background" Value="#505050"/>
+                                    <Setter Property="Focusable" Value="false"/>
+                                    <Setter Property="IsTabStop" Value="false"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type RepeatButton}">
+                                                <Border Background="{TemplateBinding Background}" Height="{TemplateBinding Height}" Width="{TemplateBinding Width}" CornerRadius="10"/>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+
+                                <Style x:Key="ScrollBarThumbVertical" TargetType="{x:Type Thumb}">
+                                    <Setter Property="OverridesDefaultStyle" Value="true"/>
+                                    <!--<Setter Property="Margin" Value="3"/>-->
+
+                                    <Setter Property="IsTabStop" Value="false"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                                <Border x:Name="rectangle" Background="Black" Height="{TemplateBinding Height}" SnapsToDevicePixels="True" Width="{TemplateBinding Width}" CornerRadius="8"/>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="true">
+                                                        <Setter Property="Background" TargetName="rectangle" Value="Black"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsDragging" Value="true">
+                                                        <Setter Property="Background" TargetName="rectangle" Value="Black"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ScrollViewer.Resources>
                             <TabPanel x:Name="HeaderPanel"
-                          Panel.ZIndex ="1" 
-                          KeyboardNavigation.TabIndex="1"
-                          Grid.Column="0"
-                          Grid.Row="0"
-                          Margin="2,-1,2,0"
-                          IsItemsHost="true"/>
+                              Panel.ZIndex ="1" 
+                              KeyboardNavigation.TabIndex="1"
+                              Grid.Column="0"
+                              Grid.Row="0"
+                              Margin="2,-1,2,0"
+                              IsItemsHost="true">
+                            </TabPanel>
                         </ScrollViewer>
                         <ContentPresenter x:Name="PART_SelectedContentHost"
                                       SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
@@ -87,7 +125,7 @@
             </TabItem>
             <TabItem Header="tabItem1">
                 <Grid>
-                    <cef:ChromiumWebBrowser Margin="0,0,0,0">
+                    <cef:ChromiumWebBrowser Margin="0,0,0,0" Address="https://yj.pn">
                     </cef:ChromiumWebBrowser>
                 </Grid>
             </TabItem>

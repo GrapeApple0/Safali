@@ -28,7 +28,7 @@
                                 Value="Auto" />
                             <Setter TargetName="CornerScrollBarRectangle"
                                 Property="Height"
-                                Value="6" />
+                                Value="8" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
