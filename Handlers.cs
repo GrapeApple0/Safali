@@ -18,13 +18,14 @@ namespace Safali.Handlers
 {
     class KeyboardHandler : IKeyboardHandler
     {
-        bool IKeyboardHandler.OnKeyEvent(IWebBrowser chromiumWebBrowser, IBrowser browser, KeyType type, int windowsKeyCode, int nativeKeyCode, CefEventFlags modifiers, bool isSystemKey)
+        private static readonly List<double> ZOOM_LEVLES = new List<double> { -7.604, -6.081, -3.802, -2.197, -1.578, -1.224, -0.578, 0, 0.523, 1.224, 3.069, 3.802, 5.026, 6.026, 7.604, 8.827 };
+
+        public bool OnKeyEvent(IWebBrowser chromiumWebBrowser, IBrowser browser, KeyType type, int windowsKeyCode, int nativeKeyCode, CefEventFlags modifiers, bool isSystemKey)
         {
             return false;
         }
-
-        private static readonly List<double> ZOOM_LEVLES = new List<double> { -7.604, -6.081, -3.802, -2.197, -1.578, -1.224, -0.578, 0, 0.523, 1.224, 3.069, 3.802, 5.026, 6.026, 7.604, 8.827 };
-
+        Grid parent;
+        Window fullScreenWindow;
         bool IKeyboardHandler.OnPreKeyEvent(IWebBrowser chromiumWebBrowser, IBrowser browser, KeyType type, int windowsKeyCode, int nativeKeyCode, CefEventFlags modifiers, bool isSystemKey, ref bool isKeyboardShortcut)
         {
             if (type == KeyType.RawKeyDown)
@@ -56,11 +57,45 @@ namespace Safali.Handlers
                     browser.Reload();
                     return true;
                 }
+                // VK_F11キー
+                if (windowsKeyCode == (int)Keys.F11 && modifiers == CefEventFlags.None)
+                {
+                    var webBrowser = (ChromiumWebBrowser)chromiumWebBrowser;
+                    webBrowser.Dispatcher.BeginInvoke((Action)(() =>
+                    {
+                        if (fullScreenWindow.WindowState != WindowState.Maximized && fullScreenWindow.WindowStyle != WindowStyle.None)
+                        {
+                            parent = (Grid)VisualTreeHelper.GetParent(webBrowser);
+                            parent.Children.Remove(webBrowser);
+                            fullScreenWindow = new Window
+                            {
+                                WindowStyle = WindowStyle.None,
+                                WindowState = WindowState.Maximized,
+                                Content = webBrowser
+                            };
+                            fullScreenWindow.ShowDialog();
+                        }
+                        else
+                        {
+                            fullScreenWindow.Content = null;
+                            parent.Children.Add(webBrowser);
+                            fullScreenWindow.Close();
+                            fullScreenWindow = null;
+                            parent = null;
+                        }
+                    }));
+                    return true;
+                }
                 // VK_F12キー
                 if (windowsKeyCode == (int)Keys.F12 && modifiers == CefEventFlags.None)
                 {
                     // 開発者ツールを表示する
-                    browser.ShowDevTools();
+                    var host = chromiumWebBrowser.GetBrowserHost();
+
+                    var windowInfo = new WindowInfo();
+                    windowInfo.SetAsChild(host.GetWindowHandle());
+
+                    browser.ShowDevTools(windowInfo);
                     return true;
                 }
                 // Ctrl + NumberPad_Add
@@ -208,7 +243,6 @@ namespace Safali.Handlers
         {
         }
 
-
         public bool OnAutoResize(IWebBrowser chromiumWebBrowser, IBrowser browser, CefSharp.Structs.Size newSize)
         {
             return false;
@@ -262,8 +296,8 @@ namespace Safali.Handlers
 
         public void OnLoadingProgressChange(IWebBrowser chromiumWebBrowser, IBrowser browser, double progress)
         {
-        }
 
+        }
 
         public void OnStatusMessage(IWebBrowser chromiumWebBrowser, StatusMessageEventArgs statusMessageArgs)
         {
@@ -271,18 +305,13 @@ namespace Safali.Handlers
 
         public void OnTitleChanged(IWebBrowser chromiumWebBrowser, TitleChangedEventArgs titleChangedArgs)
         {
-            // コントロールのトップレベルのコントロールを取得（SimpleBrowserFrame）
+            // コントロールのトップレベルのコントロールを取得
             Window mainFrame = new Window();
             try
             {
                 mainFrame = ExtensionClass.getMainFrame(titleChangedArgs.Browser);
             }
-            catch
-            {
-
-            }
-
-
+            catch { }
             if (mainFrame != null)
             {
                 // 親コントロールのコンテキストでタイトル文字列を変更する。
@@ -310,11 +339,13 @@ namespace Safali.Handlers
             IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
         {
             newBrowser = null;
-            return false;
+            //一旦無効化
+            return true;
         }
 
         public void OnAfterCreated(IWebBrowser chromiumWebBrowser, IBrowser browser)
         {
+
         }
 
         public bool DoClose(IWebBrowser chromiumWebBrowser, IBrowser browser)

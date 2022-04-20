@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using CefSharp;
 using CefSharp.Wpf;
@@ -27,10 +22,19 @@ namespace Safali
                 LogSeverity = LogSeverity.Verbose
             };
             settings.CefCommandLineArgs.Add("enable-media-stream", "1");
+            settings.EnablePrintPreview();
+            Cef.EnableHighDPISupport();
+            CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
             Cef.Initialize(settings);
-            Safali.App app = new Safali.App();
+
+            App app = new App();
             app.InitializeComponent();
             app.Run();
+        }
+
+        private void Application_Exit(object sender, ExitEventArgs e)
+        {
+            Cef.Shutdown();
         }
     }
 }

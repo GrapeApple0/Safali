@@ -1,6 +1,7 @@
 ﻿using CefSharp;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -8,7 +9,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Interop;
+using System.Windows.Markup;
 using System.Windows.Media;
+using System.Xml;
 
 namespace Safali
 {
@@ -60,6 +63,27 @@ namespace Safali
             IntPtr hWnd = browser.GetHost().GetWindowHandle();
             var rootVisual = HwndSource.FromHwnd(hWnd).RootVisual;
             return (Window)rootVisual;
+        }
+
+        public static T TrycloneElement<T>(T orig)
+        {
+            try
+            {
+                string s = XamlWriter.Save(orig);
+
+                StringReader stringReader = new StringReader(s);
+
+                XmlReader xmlReader = XmlTextReader.Create(stringReader, new XmlReaderSettings());
+                XmlReaderSettings sx = new XmlReaderSettings();
+
+                object x = XamlReader.Load(xmlReader);
+                return (T)x;
+            }
+            catch
+            {
+                return (T)((object)null);
+            }
+
         }
     }
 }
