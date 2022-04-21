@@ -95,13 +95,13 @@ namespace Safali
                 var vb = new VisualBrush(tabItem.Content as Visual)
                 {
                     //600,400
-                    Viewport = new Rect(new Size(300, 200)),
-                    Viewbox = new Rect(new Size(300, 200)),
+                    Viewport = new Rect(new Size(200, 100)),
+                    Viewbox = new Rect(new Size(200, 100)),
                 };
 
                 var myRectangle = new Rectangle
                 {
-                    Width = 150,
+                    Width = 200,
                     Height = 100,
                     Stroke = Brushes.Transparent,
                     Margin = new Thickness(0, 0, 0, 0),
@@ -111,7 +111,7 @@ namespace Safali
                 _previewWindow = new Window
                 {
                     WindowStyle = WindowStyle.None,
-                    Width = 150,
+                    Width = 200,
                     Height = 100,
                     ShowInTaskbar = false,
                     Topmost = true,
@@ -185,10 +185,8 @@ namespace Safali
             //ここは絶対0!
             /*
             var chromium = ExtensionClass.FindVisualChilds<ChromiumWebBrowser>((DependencyObject)tabControl.SelectedContent).ElementAtOrDefault(0);
-            if (chromium.Title == "" || chromium.Title == null)
-            {
-                this.Title = "New Tab - Safali for Windows";
-            }
+            if (chromium.Title == "" || chromium.Title == null) {
+                this.Title = "New Tab - Safali for Windows"; }
             else
                 this.Title = chromium.Title + " - Safali for Windows";
             */
