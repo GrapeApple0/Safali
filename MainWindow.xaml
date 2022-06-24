@@ -7,14 +7,43 @@
         xmlns:Wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         x:Class="Safali.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="800" Icon="/icon.png">
+        Title="新しいウィンドウ - Safali" Height="600" Width="800" Icon="/icon.png">
     <Grid>
         <TextBox x:Name="address" Margin="175,6,155,0" TextWrapping="NoWrap" Text="TextBox" VerticalAlignment="Top" KeyDown="TextBox_KeyDown"/>
         <Button Content="↺" HorizontalAlignment="Right" Margin="0,5,100,0" VerticalAlignment="Top" Width="20" Click="Button_Click"/>
         <Button Content="+" HorizontalAlignment="Right" VerticalAlignment="Top" Height="20" Width="20" Margin="0,5,73,0" Click="Button_Click_1"/>
         <TabControl x:Name="tab" Margin="0,29,0,-2" SelectionChanged="tab_SelectionChanged">
-            <TabItem Width="150" Header="000">
-                <Wpf:WebView2 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted"/>
+            <TabItem Width="150">
+                <TabItem.Header>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0">Output</TextBlock>
+                        <Button Grid.Column="1" Click="tabClose">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Path Data="M0,0 L8,8 M8,0 L0,8" StrokeThickness="3" VerticalAlignment="Center" Margin="5,4,0,2">
+                                        <Path.Style>
+                                            <Style TargetType="{x:Type Path}">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="False">
+                                                        <Setter Property="Stroke" Value="LightGray" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Stroke" Value="Black" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Path.Style>
+                                    </Path>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </TabItem.Header>
+                <Wpf:WebView2 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted" SourceChanged="WebView2_SourceChanged"/>
             </TabItem>
         </TabControl>
     </Grid>
