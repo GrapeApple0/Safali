@@ -8,43 +8,123 @@
         x:Class="Safali.MainWindow"
         mc:Ignorable="d"
         Title="新しいウィンドウ - Safali" Height="600" Width="800" Icon="/icon.png">
+    <Window.Resources>
+        <Style x:Key="TabItemContainerStyle" TargetType="{x:Type TabItem}">
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <Label Content="{Binding}">
+                            <Label.Style>
+                                <Style TargetType="Label">
+                                    <EventSetter Event="MouseEnter" Handler="TabItem_MouseEnter"/>
+                                    <EventSetter Event="MouseLeave" Handler="TabItem_MouseLeave"/>
+                                    <EventSetter Event="MouseMove" Handler="TabItem_MouseMove"/>
+                                </Style>
+                            </Label.Style>
+                        </Label>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <ControlTemplate x:Key="RoundedButton" TargetType="Button">
+            <Border Name="border"
+                BorderThickness="1"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                Background="{TemplateBinding Background}"
+                CornerRadius="3">
+            </Border>
+        </ControlTemplate>
+    </Window.Resources>
     <Grid>
-        <TextBox x:Name="address" Margin="175,6,155,0" TextWrapping="NoWrap" Text="TextBox" VerticalAlignment="Top" KeyDown="TextBox_KeyDown"/>
-        <Button Content="↺" HorizontalAlignment="Right" Margin="0,5,100,0" VerticalAlignment="Top" Width="20" Click="Button_Click"/>
-        <Button Content="+" HorizontalAlignment="Right" VerticalAlignment="Top" Height="20" Width="20" Margin="0,5,73,0" Click="Button_Click_1"/>
-        <TabControl x:Name="tab" Margin="0,29,0,-2" SelectionChanged="tab_SelectionChanged">
-            <TabItem Width="150">
-                <TabItem.Header>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0">Output</TextBlock>
-                        <Button Grid.Column="1" Click="tabClose">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Path Data="M0,0 L8,8 M8,0 L0,8" StrokeThickness="3" VerticalAlignment="Center" Margin="5,4,0,2">
-                                        <Path.Style>
-                                            <Style TargetType="{x:Type Path}">
-                                                <Style.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="False">
-                                                        <Setter Property="Stroke" Value="LightGray" />
-                                                    </Trigger>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Stroke" Value="Black" />
-                                                    </Trigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Path.Style>
-                                    </Path>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                    </Grid>
-                </TabItem.Header>
-                <Wpf:WebView2 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted" SourceChanged="WebView2_SourceChanged"/>
-            </TabItem>
-        </TabControl>
+        <Grid Background="#FFECECEC">
+            <TabControl x:Name="tab" Margin="0,30,0,0" SelectionChanged="tab_SelectionChanged">
+                <TabControl.Template>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <ScrollViewer ScrollViewer.CanContentScroll="True"  HorizontalScrollBarVisibility="Hidden"  VerticalScrollBarVisibility="Disabled" Height="24" VerticalAlignment="Center" Visibility="Visible" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" >
+                                <ScrollViewer.Resources>
+                                    <Style x:Key="RepeatButtonTransparent" TargetType="{x:Type RepeatButton}">
+                                        <Setter Property="OverridesDefaultStyle" Value="true"/>
+                                        <Setter Property="Background" Value="#505050"/>
+                                        <Setter Property="Focusable" Value="false"/>
+                                        <Setter Property="IsTabStop" Value="false"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                                                    <Border Background="{TemplateBinding Background}" Height="{TemplateBinding Height}" Width="{TemplateBinding Width}" CornerRadius="10"/>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+
+                                    <Style x:Key="ScrollBarThumbVertical" TargetType="{x:Type Thumb}">
+                                        <Setter Property="OverridesDefaultStyle" Value="true"/>
+                                        <!--<Setter Property="Margin" Value="3"/>-->
+
+                                        <Setter Property="IsTabStop" Value="false"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type Thumb}">
+                                                    <Border x:Name="rectangle" Background="Black" Height="{TemplateBinding Height}" SnapsToDevicePixels="True" Width="{TemplateBinding Width}" CornerRadius="8"/>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="true">
+                                                            <Setter Property="Background" TargetName="rectangle" Value="Black"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsDragging" Value="true">
+                                                            <Setter Property="Background" TargetName="rectangle" Value="Black"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ScrollViewer.Resources>
+                                <TabPanel x:Name="HeaderPanel"
+                              Panel.ZIndex ="1" 
+                              KeyboardNavigation.TabIndex="1"
+                              Grid.Column="0"
+                              Grid.Row="0"
+                              Margin="2,-1,2,0"
+                              IsItemsHost="true">
+                                </TabPanel>
+                            </ScrollViewer>
+                            <ContentPresenter x:Name="PART_SelectedContentHost"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                      Margin="{TemplateBinding Padding}"
+                                      ContentSource="SelectedContent" Grid.Row="1"/>
+                        </Grid>
+                    </ControlTemplate>
+                </TabControl.Template>
+                <TabItem Width="150" Margin="-2,3,-2,-4">
+                    <TabItem.Header>
+                        <Grid>
+                            <Button Click="tabClose"
+                                    Width="18" Height="18"
+                                    MouseEnter="Button_MouseEnter"
+                                    MouseLeave="Button_MouseLeave"
+                                    Margin="0,0,105,0"
+                                    VerticalAlignment="Top"
+                                    Template="{StaticResource RoundedButton}" BorderBrush="{x:Null}" Background="#FFDDDDDD">
+                            </Button>
+                            <TextBlock Text="00000" Margin="18,0,0,0" TextAlignment="Center" Height="18" Width="105"/>
+                        </Grid>
+                    </TabItem.Header>
+                    <Wpf:WebView2 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted" SourceChanged="WebView2_SourceChanged"/>
+                </TabItem>
+            </TabControl>
+        </Grid>
+        <TextBox x:Name="address" Margin="175,5,155,0" TextWrapping="NoWrap" Text="TextBox" VerticalAlignment="Top" KeyDown="TextBox_KeyDown">
+            <TextBox.Resources>
+                <Style TargetType="{x:Type Border}">
+                    <Setter Property="CornerRadius" Value="3"/>
+                </Style>
+            </TextBox.Resources>
+        </TextBox>
+        <Button Content="↺" HorizontalAlignment="Right" Margin="0,4,129,0" VerticalAlignment="Top" Width="20" Click="Button_Click"/>
+        <Button Content="+" HorizontalAlignment="Right" VerticalAlignment="Top" Height="20" Width="20" Margin="0,4,102,0" Click="Button_Click_1"/>
     </Grid>
 </Window>
