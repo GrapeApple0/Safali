@@ -6,9 +6,11 @@
         xmlns:local="clr-namespace:Safali"
         xmlns:Wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         x:Class="Safali.MainWindow"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         mc:Ignorable="d"
-        Title="新しいウィンドウ - Safali" Height="600" Width="800" Icon="/icon.png">
+        Title="新しいウィンドウ - Safali" Height="600" Width="800" Icon="/icon.png" Loaded="Window_Loaded">
     <Window.Resources>
+        <FontFamily x:Key="FontAwesome">pack://application:,,,/FontAwesome.WPF;component/#FontAwesome</FontFamily>
         <Style x:Key="TabItemContainerStyle" TargetType="{x:Type TabItem}">
             <Setter Property="HeaderTemplate">
                 <Setter.Value>
@@ -103,17 +105,25 @@
                     <TabItem.Header>
                         <Grid>
                             <Button Click="tabClose"
-                                    Width="18" Height="18"
-                                    MouseEnter="Button_MouseEnter"
-                                    MouseLeave="Button_MouseLeave"
+                                    HorizontalAlignment="Right"
                                     Margin="0,0,105,0"
-                                    VerticalAlignment="Top"
-                                    Template="{StaticResource RoundedButton}" BorderBrush="{x:Null}" Background="#FFDDDDDD">
+                                    VerticalAlignment="Top" Width="17" 
+                                    Background="{x:Null}"
+                                    BorderBrush="{x:Null}"
+                                    Height="16"
+                                    >
+                                <Button.Content>
+                                    <iconPacks:PackIconBootstrapIcons Width="12"
+                                       Height="12"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Kind="X" Background="White" />
+                                </Button.Content>
                             </Button>
-                            <TextBlock Text="00000" Margin="18,0,0,0" TextAlignment="Center" Height="18" Width="105"/>
+                            <TextBlock Text="New Tab" Margin="18,0,0,0" TextAlignment="Center" Height="18" Width="105"/>
                         </Grid>
                     </TabItem.Header>
-                    <Wpf:WebView2 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted" SourceChanged="WebView2_SourceChanged"/>
+                    <Wpf:WebView2 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted" SourceChanged="WebView2_SourceChanged" SourceUpdated="WebView2_SourceUpdated"/>
                 </TabItem>
             </TabControl>
         </Grid>
@@ -124,7 +134,15 @@
                 </Style>
             </TextBox.Resources>
         </TextBox>
-        <Button Content="↺" HorizontalAlignment="Right" Margin="0,4,129,0" VerticalAlignment="Top" Width="20" Click="Button_Click"/>
-        <Button Content="+" HorizontalAlignment="Right" VerticalAlignment="Top" Height="20" Width="20" Margin="0,4,102,0" Click="Button_Click_1"/>
+        <Button x:Name="ReloadBtn" HorizontalAlignment="Right" Margin="0,6,158,0" VerticalAlignment="Top" Width="17" Click="Reload" Background="{x:Null}" BorderBrush="{x:Null}" Height="16">
+            <Button.Content>
+                <iconPacks:PackIconBootstrapIcons Width="12"
+                                       Height="12"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Kind="ArrowCounterclockwise" Background="White" />
+            </Button.Content>
+        </Button>
+        <Button x:Name="NewTabBtn" Content="+" HorizontalAlignment="Right" VerticalAlignment="Top" Height="20" Width="20" Margin="0,4,102,0" Click="NewTab"/>
     </Grid>
 </Window>

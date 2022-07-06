@@ -20,7 +20,7 @@ namespace Safali
             InitializeComponent();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Reload(object sender, RoutedEventArgs e)
         {
             getSelectedWebView().Reload();
         }
@@ -74,17 +74,20 @@ namespace Safali
             }
         }
 
-        private void WebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        private async void WebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
+            await getSelectedWebView().EnsureCoreWebView2Async();
             address.Text = getSelectedWebView().Source.ToString();
-            //selectItem().Header = getSelectedWebView().CoreWebView2.DocumentTitle;
-            //selectItem().Header = (tab.Items[0] as TabItem).Header;
-            //selectItem().Header = makeTabHeader(getSelectedWebView().CoreWebView2.DocumentTitle);
+            selectItem().Header = makeTabHeader(getSelectedWebView().CoreWebView2.DocumentTitle);
             if (getSelectedWebView() != null)
             {
                 this.Title = getSelectedWebView().CoreWebView2.DocumentTitle + " - Safali";
             }
-            Debug.WriteLine(selectItem().Width);
+        }
+
+        public void getTitle()
+        {
+
         }
 
         private TabItem selectItem()
@@ -93,7 +96,7 @@ namespace Safali
         }
 
         private void tab_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {            
+        {
             try
             {
                 address.Text = getSelectedWebView().Source.ToString();
@@ -114,58 +117,9 @@ namespace Safali
             headerText.Height = 18;
             headerText.Margin = new Thickness(18, 0, 0, 0);
             headerText.TextAlignment = TextAlignment.Center;
+
             var CloseButton = new Button();
-            /*
-            # region Path
-            var path = new FrameworkElementFactory(typeof(Path));
-
-            //Path.Style
-            var pathStyle = new Style();
-            pathStyle.TargetType = typeof(Path);
-            //Style.Triggers.Trigger
-            var trigger1 = new Trigger()
-            {
-                Property = IsMouseOverProperty,
-                Value = false
-            };
-            var trigger2 = new Trigger()
-            {
-                Property = IsMouseOverProperty,
-                Value = true
-            };
-
-            //Trigger.Setter
-            var setter1 = new Setter()
-            {
-                Property = Shape.StrokeProperty,
-                Value = new SolidColorBrush(Colors.LightGray)
-            };
-            var setter2 = new Setter()
-            {
-                Property = Shape.StrokeProperty,
-                Value = new SolidColorBrush(Colors.Black)
-            };
-
-            //Add Setter & Trigger
-            trigger1.Setters.Add(setter1);
-            trigger2.Setters.Add(setter2);
-            pathStyle.Triggers.Add(trigger1);
-            pathStyle.Triggers.Add(trigger2);
-
-            //Set Style
-            path.SetValue(Path.DataProperty, Geometry.Parse("M0,0 L8,8 M8,0 L0,8"));
-            path.SetValue(StyleProperty, pathStyle);
-            path.SetValue(Shape.StrokeThicknessProperty, (double)3);
-            path.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
-            path.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
-            path.SetValue(MarginProperty, new Thickness(5, 4, 0, 2));
-            #endregion
-            var ctrlTemplate = new ControlTemplate();
-            ctrlTemplate.TargetType = typeof(Button);
-            ctrlTemplate.VisualTree = path;
-            CloseButton.Template = ctrlTemplate;
-            */
-            CloseButton.Template = this.FindResource("RoundedButton") as ControlTemplate;
+            //CloseButton.Template = this.FindResource("RoundedButton") as ControlTemplate;
             CloseButton.Click += CloseButton_Click;
             CloseButton.MouseEnter += Button_MouseEnter;
             CloseButton.MouseLeave += Button_MouseLeave;
@@ -173,6 +127,14 @@ namespace Safali
             CloseButton.Height = 18;
             CloseButton.Margin = new Thickness(0, 0, 105, 0);
             CloseButton.HorizontalAlignment = HorizontalAlignment.Center;
+            CloseButton.Content = new MahApps.Metro.IconPacks.PackIconBootstrapIcons() {
+                Kind = MahApps.Metro.IconPacks.PackIconBootstrapIconsKind.X,
+                Width = 12,
+                Height = 12,
+                Background = new SolidColorBrush(Colors.White)
+            };
+            CloseButton.Background = null;
+            CloseButton.BorderBrush = null;
             Grid.SetColumn(CloseButton, 0);
             Grid.SetColumn(headerText, 1);
             grid1.Children.Add(CloseButton);
@@ -257,15 +219,10 @@ namespace Safali
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var item in (sender as Button).Resources)
-            {
-                Debug.WriteLine(item);
-            }
-            
             tab.Items.RemoveAt(tab.SelectedIndex);
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void NewTab(object sender, RoutedEventArgs e)
         {
             var webview = new WebView2();
             webview.NavigationCompleted += WebView2_NavigationCompleted;
@@ -280,6 +237,7 @@ namespace Safali
             tabitem.Header = makeTabHeader();
             tabitem.Margin = new Thickness(-2, 3, -2, -4);
             tab.Items.Add(tabitem);
+
         }
 
         private void tabClose(object sender, RoutedEventArgs e)
@@ -287,10 +245,10 @@ namespace Safali
             tab.Items.RemoveAt(tab.SelectedIndex);
         }
 
-        private void WebView2_SourceChanged(object sender, CoreWebView2SourceChangedEventArgs e)
+        private async void WebView2_SourceChanged(object sender, CoreWebView2SourceChangedEventArgs e)
         {
+            await getSelectedWebView().EnsureCoreWebView2Async();
             address.Text = getSelectedWebView().Source.ToString();
-            //selectItem().Header = getSelectedWebView().CoreWebView2.DocumentTitle;
             selectItem().Header = makeTabHeader(getSelectedWebView().CoreWebView2.DocumentTitle);
             if (getSelectedWebView() != null)
             {
@@ -309,6 +267,23 @@ namespace Safali
         private void Button_MouseLeave(object sender, MouseEventArgs e)
         {
             Debug.WriteLine("Mouse Leave");
+        }
+
+        private async void WebView2_SourceUpdated(object sender, System.Windows.Data.DataTransferEventArgs e)
+        {
+            await getSelectedWebView().EnsureCoreWebView2Async();
+            address.Text = getSelectedWebView().Source.ToString();
+            selectItem().Header = makeTabHeader(getSelectedWebView().CoreWebView2.DocumentTitle);
+
+            if (getSelectedWebView() != null)
+            {
+                this.Title = getSelectedWebView().CoreWebView2.DocumentTitle + " - Safali";
+            }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
