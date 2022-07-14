@@ -8,7 +8,7 @@
         x:Class="Safali.MainWindow"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         mc:Ignorable="d"
-        Title="新しいウィンドウ - Safali" Height="600" Width="800" Icon="/icon.png" Loaded="Window_Loaded">
+        Title="新しいウィンドウ - Safali" Height="600" Width="800" Icon="/icon.png" Loaded="Window_Loaded" Closing="Window_Closing">
     <Window.Resources>
         <FontFamily x:Key="FontAwesome">pack://application:,,,/FontAwesome.WPF;component/#FontAwesome</FontFamily>
         <Style x:Key="TabItemContainerStyle" TargetType="{x:Type TabItem}">
@@ -28,18 +28,65 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <ControlTemplate x:Key="RoundedButton" TargetType="Button">
-            <Border Name="border"
-                BorderThickness="1"
-                BorderBrush="{TemplateBinding BorderBrush}"
-                Background="{TemplateBinding Background}"
-                CornerRadius="3">
-            </Border>
-        </ControlTemplate>
+
+        <SolidColorBrush x:Key="NormalButtonBrush" Color="#424242"/>
+        <SolidColorBrush x:Key="NormalBackgroundBrush" Color="#FFEAEAEA"/>
+        <SolidColorBrush x:Key="HoverButtonBrush" Color="#424242"/>
+        <SolidColorBrush x:Key="HoverBackgroundBrush" Color="#FFCACACA"/>
+        <Style x:Key="HoverButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Foreground" Value="{StaticResource NormalButtonBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Name="HoverButtonBorder" BorderThickness="0.25" CornerRadius="2" BorderBrush="#FFCACACA" Background="{StaticResource NormalBackgroundBrush}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="HoverButtonBorder" Property="BorderBrush" Value="{StaticResource HoverButtonBrush}" />
+                                <Setter TargetName="HoverButtonBorder" Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource HoverButtonBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="HoverButtonBorder" Property="Background" Value="{StaticResource NormalBackgroundBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ReloadBtn" TargetType="{x:Type Button}">
+            <Setter Property="Foreground" Value="{StaticResource NormalButtonBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border 
+                            Name="ReloadBtnBorder"
+                            BorderThickness="0,1,1,1"
+                            CornerRadius="0 3 3 0"
+                            BorderBrush="#FFABADB3"
+                            Background="#FFCACACA">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ReloadBtnBorder" Property="Background" Value="#FFCACACA" />
+                                <Setter Property="Foreground" Value="{StaticResource HoverButtonBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ReloadBtnBorder" Property="Background" Value="#FFCACACA" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid Background="#FFECECEC">
-            <TabControl x:Name="tab" Margin="0,30,0,0" SelectionChanged="tab_SelectionChanged">
+            <TabControl x:Name="tab" Margin="0,30,0,0" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged">
                 <TabControl.Template>
                     <ControlTemplate TargetType="TabControl">
                         <Grid>
@@ -101,48 +148,127 @@
                         </Grid>
                     </ControlTemplate>
                 </TabControl.Template>
-                <TabItem Width="150" Margin="-2,3,-2,-4">
+                <TabControl.Resources>
+                    <Style TargetType="TabItem">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="TabItem">
+                                    <Grid Name="Panel">
+                                        <ContentPresenter x:Name="ContentSite"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        ContentSource="Header"
+                                        Margin="10,2"/>
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Panel" Property="Background" Value="#FFEAEAEA" />
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="False">
+                                            <Setter TargetName="Panel" Property="Background" Value="#FFCACACA" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                    <Style TargetType="{x:Type Button}">
+                        <Setter Property="Foreground" Value="{StaticResource NormalButtonBrush}"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type Button}">
+                                    <Border Name="HoverButtonBorder" BorderThickness="0.25" CornerRadius="3" BorderBrush="#FFCACACA" Background="{StaticResource NormalBackgroundBrush}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="HoverButtonBorder" Property="BorderBrush" Value="{StaticResource HoverButtonBrush}" />
+                                            <Setter TargetName="HoverButtonBorder" Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                            <Setter Property="Foreground" Value="{StaticResource HoverButtonBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="HoverButtonBorder" Property="Background" Value="{StaticResource NormalBackgroundBrush}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TabControl.Resources>
+                <TabItem Margin="-2,3,-2,-4" Width="215" MinWidth="215" SizeChanged="TabItem_SizeChanged">
                     <TabItem.Header>
-                        <Grid>
-                            <Button Click="tabClose"
-                                    HorizontalAlignment="Right"
-                                    Margin="0,0,105,0"
-                                    VerticalAlignment="Top" Width="17" 
+                        <Grid MinWidth="205">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="17" />
+                                <ColumnDefinition MinWidth="190" Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Click="CloseButton_Click"
+                                    HorizontalAlignment="Center"
                                     Background="{x:Null}"
                                     BorderBrush="{x:Null}"
-                                    Height="16"
+                                    Width="17"
+                                    Height="17"
+                                    Grid.Column="0"
                                     >
                                 <Button.Content>
-                                    <iconPacks:PackIconBootstrapIcons Width="12"
-                                       Height="12"
+                                    <iconPacks:PackIconBootstrapIcons 
+                                       Width="7"
+                                       Height="7"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
-                                       Kind="X" Background="White" />
+                                       Kind="X" Background="Transparent" />
                                 </Button.Content>
                             </Button>
-                            <TextBlock Text="New Tab" Margin="18,0,0,0" TextAlignment="Center" Height="18" Width="105"/>
+                            <TextBlock Grid.Column="1" Text="ABCDEF" Margin="24,0,24,0" TextAlignment="Center"/>
                         </Grid>
                     </TabItem.Header>
-                    <Wpf:WebView2 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted" SourceChanged="WebView2_SourceChanged" SourceUpdated="WebView2_SourceUpdated"/>
+                    <Grid>
+                        <Wpf:WebView2 x:Name="webview21" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted" SourceChanged="WebView2_SourceChanged" SourceUpdated="WebView2_SourceUpdated"/>
+                    </Grid>
                 </TabItem>
             </TabControl>
         </Grid>
-        <TextBox x:Name="address" Margin="175,5,155,0" TextWrapping="NoWrap" Text="TextBox" VerticalAlignment="Top" KeyDown="TextBox_KeyDown">
-            <TextBox.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="3"/>
-                </Style>
-            </TextBox.Resources>
-        </TextBox>
-        <Button x:Name="ReloadBtn" HorizontalAlignment="Right" Margin="0,6,158,0" VerticalAlignment="Top" Width="17" Click="Reload" Background="{x:Null}" BorderBrush="{x:Null}" Height="16">
-            <Button.Content>
-                <iconPacks:PackIconBootstrapIcons Width="12"
+        <Grid>
+            <Grid HorizontalAlignment="Stretch" Margin="175,4,155,0" VerticalAlignment="Top">
+                <TextBox x:Name="address" TextWrapping="NoWrap" Text="TextBox" VerticalAlignment="Center" KeyDown="TextBox_KeyDown" Background="#FFCACACA" BorderThickness="1,1,0,1" SizeChanged="address_SizeChanged" Margin="0,0,7,0">
+                    <TextBox.Resources>
+                        <Style TargetType="{x:Type Border}">
+                            <Setter Property="CornerRadius" Value="3,0,0,3"/>
+                        </Style>
+                    </TextBox.Resources>
+                </TextBox>
+            </Grid>
+            <Button x:Name="ReloadBtn" Style="{StaticResource ReloadBtn}" HorizontalAlignment="Right" Margin="0,4,144,0" VerticalAlignment="Top" Width="18" Click="Reload" Background="#FFCACACA" BorderBrush="{x:Null}" Height="18">
+                <Button.Content>
+                    <iconPacks:PackIconBootstrapIcons Width="12"
                                        Height="12"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
-                                       Kind="ArrowCounterclockwise" Background="White" />
-            </Button.Content>
-        </Button>
-        <Button x:Name="NewTabBtn" Content="+" HorizontalAlignment="Right" VerticalAlignment="Top" Height="20" Width="20" Margin="0,4,102,0" Click="NewTab"/>
+                                       Kind="ArrowCounterclockwise" />
+                </Button.Content>
+            </Button>
+            <Button 
+        x:Name="NewTabBtn" 
+        HorizontalAlignment="Right" 
+        VerticalAlignment="Top" 
+        Height="17" Width="17" 
+        Margin="0,4,90,0" 
+        Click="NewTab"
+        Style="{StaticResource HoverButtonStyle}">
+                <Button.Content>
+                    <iconPacks:PackIconBootstrapIcons 
+                                        Width="13"
+                                       Height="13"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Kind="Plus" Background="Transparent" />
+                </Button.Content>
+            </Button>
+
+        </Grid>
+        <Grid x:Name="fullscreen" >
+
+        </Grid>
     </Grid>
 </Window>
