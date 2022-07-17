@@ -4,31 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Safali"
-        xmlns:Wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        xmlns:Wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf" x:Name="window"
         x:Class="Safali.MainWindow"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         mc:Ignorable="d"
-        Title="新しいウィンドウ - Safali" Height="600" Width="800" Icon="/icon.png" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="新しいウィンドウ - Safali" Height="800" Width="1200" Icon="/icon.png" Loaded="Window_Loaded" Closing="Window_Closing" MinWidth="600" MinHeight="400">
     <Window.Resources>
-        <FontFamily x:Key="FontAwesome">pack://application:,,,/FontAwesome.WPF;component/#FontAwesome</FontFamily>
-        <Style x:Key="TabItemContainerStyle" TargetType="{x:Type TabItem}">
-            <Setter Property="HeaderTemplate">
-                <Setter.Value>
-                    <DataTemplate>
-                        <Label Content="{Binding}">
-                            <Label.Style>
-                                <Style TargetType="Label">
-                                    <EventSetter Event="MouseEnter" Handler="TabItem_MouseEnter"/>
-                                    <EventSetter Event="MouseLeave" Handler="TabItem_MouseLeave"/>
-                                    <EventSetter Event="MouseMove" Handler="TabItem_MouseMove"/>
-                                </Style>
-                            </Label.Style>
-                        </Label>
-                    </DataTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <SolidColorBrush x:Key="NormalButtonBrush" Color="#424242"/>
         <SolidColorBrush x:Key="NormalBackgroundBrush" Color="#FFEAEAEA"/>
         <SolidColorBrush x:Key="HoverButtonBrush" Color="#424242"/>
@@ -86,7 +67,11 @@
     </Window.Resources>
     <Grid>
         <Grid Background="#FFECECEC">
-            <TabControl x:Name="tab" Margin="0,30,0,0" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="325"/>
+            </Grid.ColumnDefinitions>
+            <TabControl Grid.Column="0" x:Name="tab" Margin="0,30,325,0" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged" Grid.ColumnSpan="2">
                 <TabControl.Template>
                     <ControlTemplate TargetType="TabControl">
                         <Grid>
@@ -172,23 +157,23 @@
                             </Setter.Value>
                         </Setter>
                     </Style>
-                    <Style TargetType="{x:Type Button}">
+                    <Style TargetType="Button">
                         <Setter Property="Foreground" Value="{StaticResource NormalButtonBrush}"/>
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="{x:Type Button}">
-                                    <Border Name="HoverButtonBorder" BorderThickness="0.25" CornerRadius="3" BorderBrush="#FFCACACA" Background="{StaticResource NormalBackgroundBrush}">
+                                    <Border Name="CloseButtonBorder" BorderThickness="0.25" CornerRadius="3" BorderBrush="#FFCACACA" Background="{StaticResource NormalBackgroundBrush}">
                                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
 
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="HoverButtonBorder" Property="BorderBrush" Value="{StaticResource HoverButtonBrush}" />
-                                            <Setter TargetName="HoverButtonBorder" Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                            <Setter TargetName="CloseButtonBorder" Property="BorderBrush" Value="#00000000" />
+                                            <Setter TargetName="CloseButtonBorder" Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
                                             <Setter Property="Foreground" Value="{StaticResource HoverButtonBrush}"/>
                                         </Trigger>
                                         <Trigger Property="IsPressed" Value="True">
-                                            <Setter TargetName="HoverButtonBorder" Property="Background" Value="{StaticResource NormalBackgroundBrush}" />
+                                            <Setter TargetName="CloseButtonBorder" Property="Background" Value="{StaticResource NormalBackgroundBrush}" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -203,7 +188,7 @@
                                 <ColumnDefinition Width="17" />
                                 <ColumnDefinition MinWidth="190" Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button Click="CloseButton_Click"
+                            <!--Button Click="CloseButton_Click"
                                     HorizontalAlignment="Center"
                                     Background="{x:Null}"
                                     BorderBrush="{x:Null}"
@@ -219,7 +204,9 @@
                                        VerticalAlignment="Center"
                                        Kind="X" Background="Transparent" />
                                 </Button.Content>
-                            </Button>
+                            </Button-->
+                            <Image Source="https://www.google.com/s2/favicons?domain=https://04.si"/>
+
                             <TextBlock Grid.Column="1" Text="ABCDEF" Margin="24,0,24,0" TextAlignment="Center"/>
                         </Grid>
                     </TabItem.Header>
@@ -227,14 +214,62 @@
                         <Wpf:WebView2 x:Name="webview21" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted" SourceChanged="WebView2_SourceChanged" SourceUpdated="WebView2_SourceUpdated"/>
                     </Grid>
                 </TabItem>
+                <TabItem Margin="-2,3,-2,-4" Width="215" MinWidth="215">
+                    <TabItem.Header>
+                        <Grid MinWidth="205">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="17" />
+                                <ColumnDefinition MinWidth="190" Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <!--Button Click="CloseButton_Click"
+                                    HorizontalAlignment="Center"
+                                    Background="{x:Null}"
+                                    BorderBrush="{x:Null}"
+                                    Width="17"
+                                    Height="17"
+                                    Grid.Column="0"
+                                    >
+                                <Button.Content>
+                                    <iconPacks:PackIconBootstrapIcons 
+                                       Width="7"
+                                       Height="7"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Kind="X" Background="Transparent" />
+                                </Button.Content>
+                            </Button-->
+                            <Image Source="https://www.google.com/s2/favicons?domain=https://04.si"/>
+
+                            <TextBlock Grid.Column="1" Text="ABCDEF" Margin="24,0,24,0" TextAlignment="Center"/>
+                        </Grid>
+                    </TabItem.Header>
+
+                </TabItem>
             </TabControl>
+            <WindowsFormsHost x:Name="windowsFormsHost1" HorizontalAlignment="Stretch" Margin="0,55,0,0" Grid.Column="1" VerticalAlignment="Stretch"/>
         </Grid>
         <Grid>
             <Grid HorizontalAlignment="Stretch" Margin="175,4,155,0" VerticalAlignment="Top">
-                <TextBox x:Name="address" TextWrapping="NoWrap" Text="TextBox" VerticalAlignment="Center" KeyDown="TextBox_KeyDown" Background="#FFCACACA" BorderThickness="1,1,0,1" SizeChanged="address_SizeChanged" Margin="0,0,7,0">
+                <TextBox x:Name="address" TextWrapping="NoWrap" Text="TextBox" VerticalAlignment="Center" KeyDown="TextBox_KeyDown" Background="#FFCACACA" BorderThickness="1,1,0,1" SizeChanged="address_SizeChanged" Margin="0,0,7,0" Height="18">
                     <TextBox.Resources>
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="CornerRadius" Value="3,0,0,3"/>
+                        </Style>
+                        <Style TargetType="TextBox">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type TextBox}">
+                                        <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="true">
+                                                <Setter Property="BorderBrush" TargetName="border" Value="#FFABADB3"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
                     </TextBox.Resources>
                 </TextBox>

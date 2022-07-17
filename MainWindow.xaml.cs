@@ -2,16 +2,21 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
+using Microsoft.Web.WebView2.Core.DevToolsProtocolExtension;
+using System.Runtime.InteropServices;
 
 namespace Safali
 {
@@ -21,12 +26,14 @@ namespace Safali
     public partial class MainWindow : Window
     {
         private bool fullScreen = false;
-        Point pt;
+        private System.Windows.Forms.Panel _panel;
         private Grid parent;
-
+        private Process _process;
         public MainWindow()
         {
             InitializeComponent();
+            _panel = new System.Windows.Forms.Panel();
+            windowsFormsHost1.Child = _panel;
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -73,7 +80,7 @@ namespace Safali
             e.Handled = true;
         }
 
-        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        private async void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
@@ -93,7 +100,14 @@ namespace Safali
                         }
                         else
                         {
-                            getSelectedWebView().Source = new Uri("http://" + address.Text);
+                            if (Regex.IsMatch(address.Text, @"^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"))
+                            {
+                                getSelectedWebView().Source = new Uri("http://" + address.Text);
+                            }
+                            else
+                            {
+                                getSelectedWebView().Source = new Uri($"https://www.google.com/search?q={address.Text}");
+                            }
                         }
                     }
                     catch (Exception)
@@ -105,7 +119,59 @@ namespace Safali
             else if (e.Key == Key.F12)
             {
                 getSelectedWebView().CoreWebView2.OpenDevToolsWindow();
+                await Task.Delay(2000);
+                //Get foreground window
+                Process[] processes = Process.GetProcessesByName("msedgewebview2");
+                foreach (Process p in processes)
+                {
+                    if (p.MainWindowTitle.StartsWith("DevTools"))
+                    {
+                        IntPtr windowHandle = p.MainWindowHandle;
+                        API.SetWindowLong(windowHandle, API.GWL_STYLE, (int)(API.GetWindowLong(windowHandle, API.GWL_STYLE) & (0xFFFFFFFF ^ API.WS_SYSMENU)));
+                        API.SetParent(p.MainWindowHandle, _panel.Handle);
+                        _process = p;
+
+                        // remove control box
+                        int style = (int)API.GetWindowLong(_process.MainWindowHandle, API.GWL_STYLE);
+                        style = style & ~API.WS_CAPTION & ~API.WS_THICKFRAME;
+                        API.SetWindowLong(p.MainWindowHandle, API.GWL_STYLE, style);
+
+                        // resize embedded application & refresh
+                        ResizeEmbeddedApp();
+
+                        Debug.WriteLine(p.MainWindowTitle);
+                        break;
+                    }
+                }
+                //Check DevTools
+                //Put panel and delete title bar
             }
+        }
+
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            base.OnClosing(e);
+            if (_process != null)
+            {
+                _process.Refresh();
+                _process.Close();
+            }
+        }
+
+        private void ResizeEmbeddedApp()
+        {
+            if (_process == null)
+                return;
+
+            API.SetWindowPos(_process.MainWindowHandle, IntPtr.Zero, -10, -35, (int)_panel.ClientSize.Width + 18, (int)_panel.ClientSize.Height + 43, API.SWP_NOZORDER | API.SWP_NOACTIVATE);
+        }
+
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            Size size = base.MeasureOverride(availableSize);
+            ResizeEmbeddedApp();
+            return size;
         }
 
         [DefaultValue(false)]
@@ -160,13 +226,13 @@ namespace Safali
             (sender as WebView2).CoreWebView2.ContainsFullScreenElementChanged -= this.CoreWebView2_ContainsFullScreenElementChanged;
             (sender as WebView2).CoreWebView2.ContainsFullScreenElementChanged += this.CoreWebView2_ContainsFullScreenElementChanged;
             address.Text = getSelectedWebView().Source.ToString();
+
             await Task.Delay(500);
             try
             {
-
-                if (makeTabHeader(selectItem().Width, getSelectedWebView().CoreWebView2.DocumentTitle ?? "New Tab") != null)
+                if (API.makeTabHeader(selectItem().Width, this, getSelectedWebView().CoreWebView2.DocumentTitle ?? "New Tab") != null)
                 {
-                    changeTitle(getSelectedWebView().CoreWebView2.DocumentTitle ?? "New Tab");
+                    changeTitle(getSelectedWebView().CoreWebView2.DocumentTitle ?? "New Tab", "https://www.google.com/s2/favicons?domain=" + address.Text);
                 }
                 if (getSelectedWebView() != null)
                 {
@@ -186,8 +252,12 @@ namespace Safali
             return ((selectItem().Header as Grid).Children[1] as TextBlock).Text;
         }
 
-        public void changeTitle(string title)
+        public void changeTitle(string title, string favicon = null)
         {
+            if (favicon != null)
+            {
+                ((selectItem().Header as Grid).Children[0] as Image).Source = new BitmapImage(new Uri(favicon));
+            }
             ((selectItem().Header as Grid).Children[1] as TextBlock).Text = title;
         }
 
@@ -207,53 +277,22 @@ namespace Safali
             try
             {
                 titleChange();
+                foreach (TabItem item in tab.Items)
+                {
+                    if ((tab.SelectedItem as TabItem) == item)
+                    {
+                        item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, false);
+                    }
+                    else
+                    {
+                        item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, true);
+                    }
+                }
             }
             catch
             {
 
             }
-        }
-
-        private Grid makeTabHeader(double tabwidth, string text = "New Tab")
-        {
-            //CloseButton
-            var CloseButton = new Button();
-            CloseButton.Click += CloseButton_Click;
-            CloseButton.Width = 17;
-
-            CloseButton.Height = 17;
-            CloseButton.HorizontalAlignment = HorizontalAlignment.Center;
-            CloseButton.Background = null;
-            CloseButton.BorderBrush = null;
-            Grid.SetColumn(CloseButton, 0);
-            CloseButton.Content = new MahApps.Metro.IconPacks.PackIconBootstrapIcons()
-            {
-                Kind = MahApps.Metro.IconPacks.PackIconBootstrapIconsKind.X,
-                Width = 7,
-                Height = 7,
-                Background = new SolidColorBrush(Colors.Transparent),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-            //HeaderText
-            var headerText = new TextBlock();
-            headerText.Text = text;
-            headerText.Height = 18;
-            headerText.Margin = new Thickness(24, 0, 24, 0);
-            headerText.TextAlignment = TextAlignment.Center;
-            Grid.SetColumn(headerText, 1);
-            //Grid
-            var grid1 = new Grid();
-            grid1.MinWidth = 205;
-            ColumnDefinition c1 = new ColumnDefinition();
-            c1.Width = new GridLength(17, GridUnitType.Star);
-            ColumnDefinition c2 = new ColumnDefinition();
-            c2.MinWidth = 190;
-            grid1.ColumnDefinitions.Add(c1);
-            grid1.ColumnDefinitions.Add(c2);
-            grid1.Children.Add(CloseButton);
-            grid1.Children.Add(headerText);
-            return grid1;
         }
 
         public T CloneXamlElement<T>(T source) where T : class
@@ -270,81 +309,7 @@ namespace Safali
             return (cloned is T) ? (T)cloned : null;
         }
 
-        private Window _previewWindow;
-
-        private static TabItem GetTabItem(object sender)
-        {
-            var control = sender as Control;
-            if (control == null)
-                return null;
-            var parent = control.TemplatedParent as ContentPresenter;
-            if (parent == null)
-                return null;
-            return parent.TemplatedParent as TabItem;
-        }
-
-        private void TabItem_MouseEnter(object sender, MouseEventArgs e)
-        {
-            var tabItem = GetTabItem(sender);
-            if (tabItem != null)
-            {
-                var vb = new VisualBrush(tabItem.Content as Visual)
-                {
-                    //600,400
-                    Viewport = new Rect(new Size(200, 100)),
-                    Viewbox = new Rect(new Size(200, 100)),
-                };
-
-                var myRectangle = new Rectangle
-                {
-                    Width = 200,
-                    Height = 100,
-                    Stroke = Brushes.Transparent,
-                    Margin = new Thickness(0, 0, 0, 0),
-                    Fill = vb,
-                };
-                pt = ((Control)sender).PointToScreen(new Point(0.0d, 0.0d));
-                _previewWindow = new Window
-                {
-                    WindowStyle = WindowStyle.None,
-                    Width = 200,
-                    Height = 100,
-                    ShowInTaskbar = false,
-                    Topmost = true,
-                    Left = pt.X,
-                    Top = pt.Y + 30,
-                    Content = myRectangle,
-                };
-                _previewWindow.SizeChanged += previewWindow_SizeChanged;
-                _previewWindow.Show();
-            }
-            e.Handled = true;
-        }
-
-        void previewWindow_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            var window = sender as Window;
-            if (window != null)
-                window.Top = pt.Y + 30;
-        }
-
-        private void TabItem_MouseLeave(object sender, MouseEventArgs e)
-        {
-            if (_previewWindow != null)
-                _previewWindow.Close();
-            _previewWindow = null;
-        }
-
-        private void TabItem_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_previewWindow != null)
-            {
-                _previewWindow.Left = pt.X;
-                _previewWindow.Top = pt.Y + 30;
-            }
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        public void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             if (tab.Items.Count <= 1)
             {
@@ -367,11 +332,22 @@ namespace Safali
             var tabitem = new TabItem();
             tabitem.Content = grid;
             tabitem.Width = 215;
-            tabitem.Header = makeTabHeader(215);
+            tabitem.Header = API.makeTabHeader(215, this);
             tabitem.Margin = new Thickness(-2, 3, -2, -4);
             tabitem.SizeChanged += TabItem_SizeChanged;
             tab.Items.Add(tabitem);
             tab.SelectedItem = tabitem;
+            foreach (TabItem item in tab.Items)
+            {
+                if ((tab.SelectedItem as TabItem) == item)
+                {
+                    item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, false);
+                }
+                else
+                {
+                    item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, true);
+                }
+            }
         }
 
         private async void WebView2_SourceChanged(object sender, CoreWebView2SourceChangedEventArgs e)
@@ -439,14 +415,14 @@ namespace Safali
             {
                 foreach (TabItem tabitem in tab.Items)
                 {
-                    tabitem.Header = makeTabHeader(tab.ActualWidth / tab.Items.Count, getTitle());
+                    tabitem.Header = API.makeTabHeader(tab.ActualWidth / tab.Items.Count, getTitle());
                 }
             }
             else
             {
                 foreach (TabItem tabitem in tab.Items)
                 {
-                    tabitem.Header = makeTabHeader(215, getTitle());
+                    tabitem.Header = API.makeTabHeader(215, getTitle());
                 }
             }
             */
