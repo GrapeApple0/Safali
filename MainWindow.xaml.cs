@@ -29,6 +29,7 @@ namespace Safali
         private System.Windows.Forms.Panel _panel;
         private Grid parent;
         private Process _process;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -118,31 +119,7 @@ namespace Safali
             }
             else if (e.Key == Key.F12)
             {
-                getSelectedWebView().CoreWebView2.OpenDevToolsWindow();
-                await Task.Delay(2000);
-                //Get foreground window
-                Process[] processes = Process.GetProcessesByName("msedgewebview2");
-                foreach (Process p in processes)
-                {
-                    if (p.MainWindowTitle.StartsWith("DevTools"))
-                    {
-                        IntPtr windowHandle = p.MainWindowHandle;
-                        API.SetWindowLong(windowHandle, API.GWL_STYLE, (int)(API.GetWindowLong(windowHandle, API.GWL_STYLE) & (0xFFFFFFFF ^ API.WS_SYSMENU)));
-                        API.SetParent(p.MainWindowHandle, _panel.Handle);
-                        _process = p;
-
-                        // remove control box
-                        int style = (int)API.GetWindowLong(_process.MainWindowHandle, API.GWL_STYLE);
-                        style = style & ~API.WS_CAPTION & ~API.WS_THICKFRAME;
-                        API.SetWindowLong(p.MainWindowHandle, API.GWL_STYLE, style);
-
-                        // resize embedded application & refresh
-                        ResizeEmbeddedApp();
-
-                        Debug.WriteLine(p.MainWindowTitle);
-                        break;
-                    }
-                }
+                ShowDevTools();
                 //Check DevTools
                 //Put panel and delete title bar
             }
@@ -270,6 +247,7 @@ namespace Safali
         {
             address.Text = getSelectedWebView().Source.ToString();
             this.Title = getSelectedWebView().CoreWebView2.DocumentTitle + " - Safali";
+            changeTitle(getSelectedWebView().CoreWebView2.DocumentTitle, address.Text);
         }
 
         private void tab_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -287,6 +265,10 @@ namespace Safali
                     {
                         item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, true);
                     }
+                }
+                if (_process != null)
+                {
+                    ShowDevTools();
                 }
             }
             catch
@@ -426,6 +408,43 @@ namespace Safali
                 }
             }
             */
+        }
+
+        private async void ShowDevTools()
+        {
+            if (_process != null)
+            {
+                _process.CloseMainWindow();
+            }
+            getSelectedWebView().CoreWebView2.OpenDevToolsWindow();
+            await Task.Delay(600);
+            //Get foreground window
+            Process[] processes = Process.GetProcessesByName("msedgewebview2");
+            foreach (Process p in processes)
+            {
+                if (p.MainWindowTitle.StartsWith("DevTools"))
+                {
+                    _process = p;
+                    IntPtr windowHandle = p.MainWindowHandle;
+                    API.SetWindowLong(windowHandle, API.GWL_STYLE, (int)(API.GetWindowLong(windowHandle, API.GWL_STYLE) & (0xFFFFFFFF ^ API.WS_SYSMENU)));
+                    API.SetParent(p.MainWindowHandle, _panel.Handle);
+                    int style = (int)API.GetWindowLong(_process.MainWindowHandle, API.GWL_STYLE);
+                    style = style & ~API.WS_CAPTION & ~API.WS_THICKFRAME;
+                    API.SetWindowLong(p.MainWindowHandle, API.GWL_STYLE, style);
+                    ResizeEmbeddedApp();
+                    break;
+                }
+            }
+        }
+
+        private void DevToolsClose_Click(object sender, RoutedEventArgs e)
+        {
+            ResizeEmbeddedApp();
+        }
+
+        private void windowsFormsHost1_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            ResizeEmbeddedApp();
         }
     }
 }

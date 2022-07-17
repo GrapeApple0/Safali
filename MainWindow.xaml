@@ -64,14 +64,16 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <local:MinusConverter x:Key="MinusConverter" />
     </Window.Resources>
     <Grid>
         <Grid Background="#FFECECEC">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="325"/>
+                <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=LayoutRoot, Converter={StaticResource MinusConverter}}" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition MinWidth="325" MaxWidth="600" Width="Auto"  />
             </Grid.ColumnDefinitions>
-            <TabControl Grid.Column="0" x:Name="tab" Margin="0,30,325,0" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged" Grid.ColumnSpan="2">
+            <TabControl Grid.Column="0" x:Name="tab" Margin="0,30,0,0" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged" Grid.ColumnSpan="2">
                 <TabControl.Template>
                     <ControlTemplate TargetType="TabControl">
                         <Grid>
@@ -214,39 +216,9 @@
                         <Wpf:WebView2 x:Name="webview21" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted" SourceChanged="WebView2_SourceChanged" SourceUpdated="WebView2_SourceUpdated"/>
                     </Grid>
                 </TabItem>
-                <TabItem Margin="-2,3,-2,-4" Width="215" MinWidth="215">
-                    <TabItem.Header>
-                        <Grid MinWidth="205">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="17" />
-                                <ColumnDefinition MinWidth="190" Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <!--Button Click="CloseButton_Click"
-                                    HorizontalAlignment="Center"
-                                    Background="{x:Null}"
-                                    BorderBrush="{x:Null}"
-                                    Width="17"
-                                    Height="17"
-                                    Grid.Column="0"
-                                    >
-                                <Button.Content>
-                                    <iconPacks:PackIconBootstrapIcons 
-                                       Width="7"
-                                       Height="7"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Kind="X" Background="Transparent" />
-                                </Button.Content>
-                            </Button-->
-                            <Image Source="https://www.google.com/s2/favicons?domain=https://04.si"/>
-
-                            <TextBlock Grid.Column="1" Text="ABCDEF" Margin="24,0,24,0" TextAlignment="Center"/>
-                        </Grid>
-                    </TabItem.Header>
-
-                </TabItem>
             </TabControl>
-            <WindowsFormsHost x:Name="windowsFormsHost1" HorizontalAlignment="Stretch" Margin="0,55,0,0" Grid.Column="1" VerticalAlignment="Stretch"/>
+            <GridSplitter Grid.Column="1" Background="#FF3E3E3E" Width="5" HorizontalAlignment="Stretch" Margin="0,58,0,0" />
+            <WindowsFormsHost Grid.Column="2" x:Name="windowsFormsHost1" Margin="5,55,0,0" HorizontalAlignment="Stretch" SizeChanged="windowsFormsHost1_SizeChanged"/>
         </Grid>
         <Grid>
             <Grid HorizontalAlignment="Stretch" Margin="175,4,155,0" VerticalAlignment="Top">
