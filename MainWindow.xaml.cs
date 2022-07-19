@@ -1,22 +1,15 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
-using Microsoft.Web.WebView2.Core.DevToolsProtocolExtension;
-using System.Runtime.InteropServices;
 
 namespace Safali
 {
@@ -25,31 +18,14 @@ namespace Safali
     /// </summary>
     public partial class MainWindow : Window
     {
-        private bool fullScreen = false;
-        private System.Windows.Forms.Panel _panel;
-        private Grid parent;
-        private Process _process;
-
         public MainWindow()
         {
             InitializeComponent();
-            _panel = new System.Windows.Forms.Panel();
-            windowsFormsHost1.Child = _panel;
         }
-
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            await getSelectedWebView().EnsureCoreWebView2Async();
-            getSelectedWebView().CoreWebView2.ContainsFullScreenElementChanged += this.CoreWebView2_ContainsFullScreenElementChanged;
-            HideDevTools();
-        }
-
-        private bool isReload = false;
 
         private void Reload(object sender, RoutedEventArgs e)
         {
             getSelectedWebView().Reload();
-            isReload = true;
             ReloadBtn.Content = new MahApps.Metro.IconPacks.PackIconBootstrapIcons()
             {
                 Kind = MahApps.Metro.IconPacks.PackIconBootstrapIconsKind.X,
@@ -75,13 +51,28 @@ namespace Safali
             return webview;
         }
 
-        private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        #region window
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            ScrollViewer scv = (ScrollViewer)sender;
-            scv.ScrollToHorizontalOffset(scv.HorizontalOffset - e.Delta);
-            e.Handled = true;
+            _panel = new System.Windows.Forms.Panel();
+            windowsFormsHost1.Child = _panel;
+            await getSelectedWebView().EnsureCoreWebView2Async();
+            getSelectedWebView().CoreWebView2.ContainsFullScreenElementChanged += this.CoreWebView2_ContainsFullScreenElementChanged;
+            HideDevTools();
         }
 
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            base.OnClosing(e);
+            if (_process != null)
+            {
+                _process.Refresh();
+                _process.Close();
+            }
+        }
+        #endregion
+
+        #region address box
         private void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -118,60 +109,15 @@ namespace Safali
                     }
                 }
             }
-            else if (e.Key == Key.F12)
-            {
-                ShowDevTools();
-            }
         }
+        #endregion
 
-
-        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        #region tab
+        private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            base.OnClosing(e);
-            if (_process != null)
-            {
-                _process.Refresh();
-                _process.Close();
-            }
-        }
-
-
-
-
-
-        public string getTitle()
-        {
-            return ((selectItem().Header as Grid).Children[1] as TextBlock).Text;
-        }
-
-        public void changeTitle(string title, string favicon = null)
-        {
-            if (favicon != null)
-            {
-                try
-                {
-                    if (favicon == null)
-                    {
-                        ((selectItem().Header as Grid).Children[0] as Image).Source = new BitmapImage(new Uri("./Resources/star.png", UriKind.Relative));
-                    }
-                    else
-                    {
-                        ((selectItem().Header as Grid).Children[0] as Image).Source = new BitmapImage(new Uri(favicon));
-
-                    }
-                }
-                catch
-                {
-                }
-            }
-            ((selectItem().Header as Grid).Children[1] as TextBlock).Text = title;
-        }
-
-        private void titleChange(WebView2 wv2)
-        {
-            address.Text = wv2.Source.ToString();
-            this.Title = wv2.CoreWebView2.DocumentTitle + " - Safali";
-            changeTitle(wv2.CoreWebView2.DocumentTitle, address.Text);
+            ScrollViewer scv = (ScrollViewer)sender;
+            scv.ScrollToHorizontalOffset(scv.HorizontalOffset - e.Delta);
+            e.Handled = true;
         }
 
         public void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -253,25 +199,51 @@ namespace Safali
 
         private void TabItem_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            /*
-            if (tab.ActualWidth / tab.Items.Count <= 215)
-            {
-                foreach (TabItem tabitem in tab.Items)
-                {
-                    tabitem.Header = API.makeTabHeader(tab.ActualWidth / tab.Items.Count, getTitle());
-                }
-            }
-            else
-            {
-                foreach (TabItem tabitem in tab.Items)
-                {
-                    tabitem.Header = API.makeTabHeader(215, getTitle());
-                }
-            }
-            */
+
+        }
+        #endregion
+
+        #region title
+        public string getTitle()
+        {
+            return ((selectItem().Header as Grid).Children[1] as TextBlock).Text;
         }
 
+        public void changeTitle(string title, string favicon = null)
+        {
+            if (favicon != null)
+            {
+                try
+                {
+                    if (favicon == null)
+                    {
+                        ((selectItem().Header as Grid).Children[0] as Image).Source = new BitmapImage(new Uri("./Resources/star.png", UriKind.Relative));
+                    }
+                    else
+                    {
+                        ((selectItem().Header as Grid).Children[0] as Image).Source = new BitmapImage(new Uri(favicon));
+
+                    }
+                }
+                catch
+                {
+                }
+            }
+            ((selectItem().Header as Grid).Children[1] as TextBlock).Text = title;
+        }
+
+        private void titleChange(WebView2 wv2)
+        {
+            address.Text = wv2.Source.ToString();
+            this.Title = wv2.CoreWebView2.DocumentTitle + " - Safali";
+            changeTitle(wv2.CoreWebView2.DocumentTitle, address.Text);
+        }
+        #endregion
+
         #region FullScreen
+        private bool fullScreen = false;
+        private Grid parent;
+
         [DefaultValue(false)]
         private WebView2 fullScreenWebView;
         public bool FullScreen
@@ -319,7 +291,6 @@ namespace Safali
         private async void WebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             await (sender as WebView2).EnsureCoreWebView2Async();
-            isReload = false;
             ReloadBtn.Content = new MahApps.Metro.IconPacks.PackIconBootstrapIcons()
             {
                 Kind = MahApps.Metro.IconPacks.PackIconBootstrapIconsKind.ArrowCounterclockwise,
@@ -331,11 +302,6 @@ namespace Safali
             (sender as WebView2).CoreWebView2.ContainsFullScreenElementChanged -= this.CoreWebView2_ContainsFullScreenElementChanged;
             (sender as WebView2).CoreWebView2.ContainsFullScreenElementChanged += this.CoreWebView2_ContainsFullScreenElementChanged;
             address.Text = getSelectedWebView().Source.ToString();
-            if (getSelectedWebView().Source.DnsSafeHost.Split('.')[getSelectedWebView().Source.DnsSafeHost.Split('.').Length - 2] == "youtube")
-            {
-
-            }
-
             await Task.Delay(500);
             try
             {
@@ -382,12 +348,10 @@ namespace Safali
 
         #endregion
 
-        private void Window_Closing(object sender, CancelEventArgs e)
-        {
-            
-        }
-
         #region DevTools
+        private System.Windows.Forms.Panel _panel;
+        private Process _process;
+
         private void ResizeEmbeddedApp()
         {
             if (_process == null)
@@ -402,7 +366,6 @@ namespace Safali
             ResizeEmbeddedApp();
             return size;
         }
-
 
         private async void ShowDevTools()
         {
