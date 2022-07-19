@@ -41,6 +41,7 @@ namespace Safali
         {
             await getSelectedWebView().EnsureCoreWebView2Async();
             getSelectedWebView().CoreWebView2.ContainsFullScreenElementChanged += this.CoreWebView2_ContainsFullScreenElementChanged;
+            HideDevTools();
         }
 
         private bool isReload = false;
@@ -81,7 +82,7 @@ namespace Safali
             e.Handled = true;
         }
 
-        private async void TextBox_KeyDown(object sender, KeyEventArgs e)
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
@@ -120,8 +121,6 @@ namespace Safali
             else if (e.Key == Key.F12)
             {
                 ShowDevTools();
-                //Check DevTools
-                //Put panel and delete title bar
             }
         }
 
@@ -136,21 +135,143 @@ namespace Safali
             }
         }
 
-        private void ResizeEmbeddedApp()
-        {
-            if (_process == null)
-                return;
 
-            API.SetWindowPos(_process.MainWindowHandle, IntPtr.Zero, -10, -35, (int)_panel.ClientSize.Width + 18, (int)_panel.ClientSize.Height + 43, API.SWP_NOZORDER | API.SWP_NOACTIVATE);
+
+
+
+        public string getTitle()
+        {
+            return ((selectItem().Header as Grid).Children[1] as TextBlock).Text;
         }
 
-        protected override Size MeasureOverride(Size availableSize)
+        public void changeTitle(string title, string favicon = null)
         {
-            Size size = base.MeasureOverride(availableSize);
-            ResizeEmbeddedApp();
-            return size;
+            if (favicon != null)
+            {
+                try
+                {
+                    if (favicon == null)
+                    {
+                        ((selectItem().Header as Grid).Children[0] as Image).Source = new BitmapImage(new Uri("./Resources/star.png", UriKind.Relative));
+                    }
+                    else
+                    {
+                        ((selectItem().Header as Grid).Children[0] as Image).Source = new BitmapImage(new Uri(favicon));
+
+                    }
+                }
+                catch
+                {
+                }
+            }
+            ((selectItem().Header as Grid).Children[1] as TextBlock).Text = title;
         }
 
+        private void titleChange(WebView2 wv2)
+        {
+            address.Text = wv2.Source.ToString();
+            this.Title = wv2.CoreWebView2.DocumentTitle + " - Safali";
+            changeTitle(wv2.CoreWebView2.DocumentTitle, address.Text);
+        }
+
+        public void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (tab.Items.Count <= 1)
+            {
+                Application.Current.Shutdown();
+            }
+            tab.Items.RemoveAt(tab.SelectedIndex);
+        }
+
+        private void tab_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                foreach (TabItem item in tab.Items)
+                {
+                    if ((tab.SelectedItem as TabItem) == item)
+                    {
+                        item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, false);
+                    }
+                    else
+                    {
+                        item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, true);
+                    }
+                }
+                if (_process != null)
+                {
+                    ShowDevTools();
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        private TabItem selectItem()
+        {
+            return (tab.SelectedItem as TabItem);
+        }
+
+        private void NewTab(object sender, RoutedEventArgs e)
+        {
+            var webview = new WebView2();
+            webview.NavigationCompleted += WebView2_NavigationCompleted;
+            webview.HorizontalAlignment = HorizontalAlignment.Stretch;
+            webview.VerticalAlignment = VerticalAlignment.Stretch;
+            webview.Source = new Uri("https://google.com/");
+            webview.NavigationCompleted += WebView2_NavigationCompleted;
+            webview.SourceChanged += WebView2_SourceChanged;
+            var grid = new Grid();
+            grid.Children.Add(webview);
+            var tabitem = new TabItem();
+            tabitem.Content = grid;
+            tabitem.Width = 215;
+            tabitem.Header = API.makeTabHeader(215, this);
+            tabitem.Margin = new Thickness(-2, 3, -2, -4);
+            tabitem.SizeChanged += TabItem_SizeChanged;
+            tab.Items.Add(tabitem);
+            tab.SelectedItem = tabitem;
+            foreach (TabItem item in tab.Items)
+            {
+                if ((tab.SelectedItem as TabItem) == item)
+                {
+                    item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, false);
+                }
+                else
+                {
+                    item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, true);
+                }
+            }
+        }
+
+        private void tab_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+
+        }
+
+        private void TabItem_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            /*
+            if (tab.ActualWidth / tab.Items.Count <= 215)
+            {
+                foreach (TabItem tabitem in tab.Items)
+                {
+                    tabitem.Header = API.makeTabHeader(tab.ActualWidth / tab.Items.Count, getTitle());
+                }
+            }
+            else
+            {
+                foreach (TabItem tabitem in tab.Items)
+                {
+                    tabitem.Header = API.makeTabHeader(215, getTitle());
+                }
+            }
+            */
+        }
+
+        #region FullScreen
         [DefaultValue(false)]
         private WebView2 fullScreenWebView;
         public bool FullScreen
@@ -188,6 +309,13 @@ namespace Safali
             }
         }
 
+        private void CoreWebView2_ContainsFullScreenElementChanged(object sender, object e)
+        {
+            this.FullScreen = (sender as CoreWebView2).ContainsFullScreenElement;
+        }
+        #endregion
+
+        #region WebView2 event
         private async void WebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             await (sender as WebView2).EnsureCoreWebView2Async();
@@ -203,6 +331,10 @@ namespace Safali
             (sender as WebView2).CoreWebView2.ContainsFullScreenElementChanged -= this.CoreWebView2_ContainsFullScreenElementChanged;
             (sender as WebView2).CoreWebView2.ContainsFullScreenElementChanged += this.CoreWebView2_ContainsFullScreenElementChanged;
             address.Text = getSelectedWebView().Source.ToString();
+            if (getSelectedWebView().Source.DnsSafeHost.Split('.')[getSelectedWebView().Source.DnsSafeHost.Split('.').Length - 2] == "youtube")
+            {
+
+            }
 
             await Task.Delay(500);
             try
@@ -219,119 +351,6 @@ namespace Safali
             catch { }
         }
 
-        private void CoreWebView2_ContainsFullScreenElementChanged(object sender, object e)
-        {
-            this.FullScreen = (sender as CoreWebView2).ContainsFullScreenElement;
-        }
-
-        public string getTitle()
-        {
-            return ((selectItem().Header as Grid).Children[1] as TextBlock).Text;
-        }
-
-        public void changeTitle(string title, string favicon = null)
-        {
-            if (favicon != null)
-            {
-                ((selectItem().Header as Grid).Children[0] as Image).Source = new BitmapImage(new Uri(favicon));
-            }
-            ((selectItem().Header as Grid).Children[1] as TextBlock).Text = title;
-        }
-
-        private TabItem selectItem()
-        {
-            return (tab.SelectedItem as TabItem);
-        }
-
-        private void titleChange()
-        {
-            address.Text = getSelectedWebView().Source.ToString();
-            this.Title = getSelectedWebView().CoreWebView2.DocumentTitle + " - Safali";
-            changeTitle(getSelectedWebView().CoreWebView2.DocumentTitle, address.Text);
-        }
-
-        private void tab_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            try
-            {
-                titleChange();
-                foreach (TabItem item in tab.Items)
-                {
-                    if ((tab.SelectedItem as TabItem) == item)
-                    {
-                        item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, false);
-                    }
-                    else
-                    {
-                        item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, true);
-                    }
-                }
-                if (_process != null)
-                {
-                    ShowDevTools();
-                }
-            }
-            catch
-            {
-
-            }
-        }
-
-        public T CloneXamlElement<T>(T source) where T : class
-        {
-            if (source == null)
-                return null;
-            object cloned = null;
-            using (var stream = new MemoryStream())
-            {
-                XamlWriter.Save(source, stream);
-                stream.Seek(0, SeekOrigin.Begin);
-                cloned = XamlReader.Load(stream);
-            }
-            return (cloned is T) ? (T)cloned : null;
-        }
-
-        public void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (tab.Items.Count <= 1)
-            {
-                Application.Current.Shutdown();
-            }
-            tab.Items.RemoveAt(tab.SelectedIndex);
-        }
-
-        private void NewTab(object sender, RoutedEventArgs e)
-        {
-            var webview = new WebView2();
-            webview.NavigationCompleted += WebView2_NavigationCompleted;
-            webview.HorizontalAlignment = HorizontalAlignment.Stretch;
-            webview.VerticalAlignment = VerticalAlignment.Stretch;
-            webview.Source = new Uri("https://google.com/");
-            webview.NavigationCompleted += WebView2_NavigationCompleted;
-            webview.SourceChanged += WebView2_SourceChanged;
-            var grid = new Grid();
-            grid.Children.Add(webview);
-            var tabitem = new TabItem();
-            tabitem.Content = grid;
-            tabitem.Width = 215;
-            tabitem.Header = API.makeTabHeader(215, this);
-            tabitem.Margin = new Thickness(-2, 3, -2, -4);
-            tabitem.SizeChanged += TabItem_SizeChanged;
-            tab.Items.Add(tabitem);
-            tab.SelectedItem = tabitem;
-            foreach (TabItem item in tab.Items)
-            {
-                if ((tab.SelectedItem as TabItem) == item)
-                {
-                    item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, false);
-                }
-                else
-                {
-                    item.Header = API.makeTabHeader(215, this, ((selectItem().Header as Grid).Children[1] as TextBlock).Text, true);
-                }
-            }
-        }
-
         private async void WebView2_SourceChanged(object sender, CoreWebView2SourceChangedEventArgs e)
         {
             await getSelectedWebView().EnsureCoreWebView2Async();
@@ -339,14 +358,7 @@ namespace Safali
             await Task.Delay(500);
             if (selectItem() != null)
             {
-                try
-                {
-                    titleChange();
-                }
-                catch
-                {
-
-                }
+                titleChange(getSelectedWebView());
             }
         }
 
@@ -359,14 +371,7 @@ namespace Safali
             {
                 if (selectItem() != null)
                 {
-                    try
-                    {
-                        titleChange();
-                    }
-                    catch
-                    {
-
-                    }
+                    titleChange(getSelectedWebView());
                 }
             }
             catch
@@ -375,47 +380,53 @@ namespace Safali
 
         }
 
-        private void address_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-
-        }
+        #endregion
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            //e.Cancel = true;
+            
         }
 
-        private void tab_SizeChanged(object sender, SizeChangedEventArgs e)
+        #region DevTools
+        private void ResizeEmbeddedApp()
         {
+            if (_process == null)
+                return;
 
+            API.SetWindowPos(_process.MainWindowHandle, IntPtr.Zero, -10, -35, (int)_panel.ClientSize.Width + 18, (int)_panel.ClientSize.Height + 43, API.SWP_NOZORDER | API.SWP_NOACTIVATE);
         }
 
-        private void TabItem_SizeChanged(object sender, SizeChangedEventArgs e)
+        protected override Size MeasureOverride(Size availableSize)
         {
-            /*
-            if (tab.ActualWidth / tab.Items.Count <= 215)
-            {
-                foreach (TabItem tabitem in tab.Items)
-                {
-                    tabitem.Header = API.makeTabHeader(tab.ActualWidth / tab.Items.Count, getTitle());
-                }
-            }
-            else
-            {
-                foreach (TabItem tabitem in tab.Items)
-                {
-                    tabitem.Header = API.makeTabHeader(215, getTitle());
-                }
-            }
-            */
+            Size size = base.MeasureOverride(availableSize);
+            ResizeEmbeddedApp();
+            return size;
         }
+
 
         private async void ShowDevTools()
         {
+            HideDevTools();
             if (_process != null)
             {
                 _process.CloseMainWindow();
             }
+            windowsFormsHost1.Visibility = Visibility.Visible;
+            gridSplitter1.Visibility = Visibility.Visible;
+            devClose.Visibility = Visibility.Visible;
+            tab.Margin = new Thickness(-2, 30, 6, -2);
+            var cd1 = new ColumnDefinition();
+            cd1.Width = new GridLength(1.0, GridUnitType.Star);
+            var cd2 = new ColumnDefinition();
+            cd2.Width = new GridLength(5.0, GridUnitType.Pixel);
+            var cd3 = new ColumnDefinition();
+            cd3.MinWidth = 325;
+            cd3.MaxWidth = 600;
+            cd3.Width = GridLength.Auto;
+            main.ColumnDefinitions.Clear();
+            main.ColumnDefinitions.Add(cd1);
+            main.ColumnDefinitions.Add(cd2);
+            main.ColumnDefinitions.Add(cd3);
             getSelectedWebView().CoreWebView2.OpenDevToolsWindow();
             await Task.Delay(600);
             //Get foreground window
@@ -432,19 +443,32 @@ namespace Safali
                     style = style & ~API.WS_CAPTION & ~API.WS_THICKFRAME;
                     API.SetWindowLong(p.MainWindowHandle, API.GWL_STYLE, style);
                     ResizeEmbeddedApp();
-                    break;
                 }
             }
         }
 
-        private void DevToolsClose_Click(object sender, RoutedEventArgs e)
+        public void HideDevTools()
         {
-            ResizeEmbeddedApp();
+            if (_process != null)
+            {
+                _process.CloseMainWindow();
+            }
+            tab.Margin = new Thickness(-2, 30, -2, -1);
+            main.ColumnDefinitions.Clear();
+            windowsFormsHost1.Visibility = Visibility.Collapsed;
+            gridSplitter1.Visibility = Visibility.Collapsed;
+            devClose.Visibility = Visibility.Collapsed;
+        }
+
+        private void devClose_Click(object sender, RoutedEventArgs e)
+        {
+            HideDevTools();
         }
 
         private void windowsFormsHost1_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             ResizeEmbeddedApp();
         }
+        #endregion
     }
 }

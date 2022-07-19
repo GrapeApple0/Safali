@@ -51,6 +51,18 @@ namespace Safali
             SetWindowPos(MainWindowHandle, new IntPtr(0), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
         }
 
+        public const int SW_MAXIMIZE = 3;
+        public const int SW_MINIMIZE = 6;
+        [DllImport("user32.dll", EntryPoint = "FindWindow")]
+        public static extern IntPtr FindWindowByCaption(IntPtr ZeroOnly, string lpWindowName);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        public static void ChangeWindowStatus(IntPtr hwnd,int windowStatus)
+        {
+            ShowWindow(hwnd, windowStatus);
+        }
 
         public static Grid makeTabHeader(double tabwidth, MainWindow parent, string text = "New Tab", bool showFavicon = true)
         {
@@ -112,6 +124,7 @@ namespace Safali
             return grid1;
         }
     }
+
     public class MinusConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
