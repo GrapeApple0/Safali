@@ -67,7 +67,7 @@
     </Window.Resources>
     <Grid>
         <Grid x:Name="main" Background="White">
-            <TabControl Grid.Column="0" x:Name="tab" Margin="-2,30,1,-1" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged" Grid.ColumnSpan="2">
+            <TabControl Grid.Column="0" x:Name="tab" Margin="-2,30,1,-2" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged" Grid.ColumnSpan="2">
                 <TabControl.Resources>
                     <Style TargetType="{x:Type TabItem}">
                         <Setter Property="Template">
@@ -123,7 +123,7 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition />
                             </Grid.RowDefinitions>
-                            <ScrollViewer ScrollViewer.CanContentScroll="True"  HorizontalScrollBarVisibility="Hidden"  VerticalScrollBarVisibility="Disabled" Height="24" VerticalAlignment="Center" Visibility="Visible" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" >
+                            <ScrollViewer ScrollViewer.CanContentScroll="True"  HorizontalScrollBarVisibility="Hidden"  VerticalScrollBarVisibility="Disabled" Height="24" VerticalAlignment="Center" Visibility="Visible" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" Margin="0,0,0,-2" >
                                 <ScrollViewer.Resources>
                                     <Style x:Key="RepeatButtonTransparent" TargetType="{x:Type RepeatButton}">
                                         <Setter Property="OverridesDefaultStyle" Value="true"/>
@@ -138,7 +138,6 @@
                                             </Setter.Value>
                                         </Setter>
                                     </Style>
-
                                     <Style x:Key="ScrollBarThumbVertical" TargetType="{x:Type Thumb}">
                                         <Setter Property="OverridesDefaultStyle" Value="true"/>
                                         <Setter Property="IsTabStop" Value="false"/>
@@ -174,7 +173,7 @@
                         </Grid>
                     </ControlTemplate>
                 </TabControl.Template>
-                <TabItem Margin="-2,3,-2,-6" Width="215" MinWidth="215" SizeChanged="TabItem_SizeChanged">
+                <TabItem Margin="-2,1,-2,-4" Width="215" MinWidth="215" SizeChanged="TabItem_SizeChanged">
                     <TabItem.Header>
                         <Grid MinWidth="205">
                             <Grid.ColumnDefinitions>
@@ -198,8 +197,10 @@
                                        Kind="X" Background="Transparent" />
                                 </Button.Content>
                             </Button-->
-                            <Image Source="https://www.google.com/s2/favicons?domain=nothing"/>
-                            <TextBlock Grid.Column="1" Text="ABCDEF" Margin="24,0,24,0" TextAlignment="Center"/>
+                            <Image Source="https://www.google.com/s2/favicons?domain=04.si"/>
+                            <TextBlock Grid.Column="1" Margin="24,0,24,0" TextAlignment="Center">
+
+                            </TextBlock>
                         </Grid>
                     </TabItem.Header>
                     <Grid Background="White">
@@ -222,7 +223,15 @@
         </Grid>
         <Grid>
             <Grid HorizontalAlignment="Stretch" Margin="175,4,155,0" VerticalAlignment="Top">
-                <TextBox x:Name="address" TextWrapping="NoWrap" Text="TextBox" VerticalAlignment="Center" KeyDown="TextBox_KeyDown" Background="#FFEDEDED" BorderThickness="1,1,0,1" SizeChanged="address_SizeChanged" Margin="0,0,7,0" Height="18">
+                <TextBox x:Name="address" 
+                         TextWrapping="NoWrap"
+                         Text="ExampleURL テスト"
+                         VerticalAlignment="Center"
+                         KeyDown="address_KeyDown"
+                         Background="#FFEDEDED"
+                         BorderThickness="1,1,0,1"
+                         Margin="0,0,7,0"
+                         Height="18" TextAlignment="Left" GotFocus="address_GotFocus" LostFocus="address_LostFocus" FontFamily="Meiryo">
                     <TextBox.Resources>
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="CornerRadius" Value="3,0,0,3"/>
@@ -246,6 +255,7 @@
                     </TextBox.Resources>
                 </TextBox>
             </Grid>
+
             <Button x:Name="ReloadBtn"
                     Style="{StaticResource ReloadBtn}"
                     HorizontalAlignment="Right"
@@ -272,14 +282,51 @@
         Style="{StaticResource HoverButtonStyle}">
                 <Button.Content>
                     <iconPacks:PackIconBootstrapIcons 
-                                        Width="13"
+                                       Width="13"
                                        Height="13"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        Kind="Plus" Background="Transparent" />
                 </Button.Content>
             </Button>
+            <Button 
+        x:Name="Back" 
+        HorizontalAlignment="Left" 
+        VerticalAlignment="Top" 
+        Height="17" Width="17" 
+        Margin="104,5,0,0" 
+        Style="{StaticResource HoverButtonStyle}" Click="back">
+                <Button.Content>
+                    <iconPacks:PackIconBootstrapIcons 
+                                       Width="13"
+                                       Height="13"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Kind="ChevronLeft" Background="Transparent" />
+                </Button.Content>
+            </Button>
+            <Button 
+        x:Name="Forward" 
+        HorizontalAlignment="Left" 
+        VerticalAlignment="Top" 
+        Height="17" Width="17" 
+        Margin="130,5,0,0" 
+        Style="{StaticResource HoverButtonStyle}" Click="forward">
+                <Button.Content>
+                    <iconPacks:PackIconBootstrapIcons 
+                                       Width="13"
+                                       Height="13"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Kind="ChevronRight" Background="Transparent" />
+                </Button.Content>
+            </Button>
+        </Grid>
+        <Grid x:Name="suggest"
+                   Margin="175,19,144,0" Height="400" VerticalAlignment="Top" Visibility="Collapsed">
+            <Border BorderBrush="#FFABADB3" BorderThickness="1,1,1,1" Margin="0,1,0,-1" CornerRadius="0,0,3,3" Background="#FFC5C5C5">
 
+            </Border>
         </Grid>
         <Grid x:Name="fullscreen" >
 

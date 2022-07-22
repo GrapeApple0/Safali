@@ -4,5 +4,22 @@
              xmlns:local="clr-namespace:Safali"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <Canvas Width="48" Height="48" x:Key="Star" x:Shared="False">
+            <Canvas.LayoutTransform>
+                <MatrixTransform Matrix="1,0,0,-1,0,0" />
+            </Canvas.LayoutTransform>
+            <Path Data="M53.7375 21.5625C52.275 13.2375 60.4875 6.73125 67.725 10.44375L150.0375 52.74375L232.33125 10.44375C239.56875 6.73125 247.78125 13.2375 246.31875 21.54375L230.75625 110.23125L296.79375 173.15625C302.98125 179.04375 299.79375 189.80625 291.50625 190.96875L199.66875 204.01875L158.71875 285.15A9.61875 9.61875 0 0 1 141.3375 285.15L100.3875 204L8.55 190.95C0.28125 189.7875 -2.925 179.025 3.24375 173.1375L69.3 110.2125L53.7375 21.525zM145.70625 73.44375L76.59375 37.93125L89.60625 112.125A10.59375 10.59375 0 0 1 86.55 121.59375L32.0625 173.53125L108.0375 184.33125A9.84375 9.84375 0 0 1 115.40625 189.73125L150 258.31875L184.63125 189.73125A9.84375 9.84375 0 0 1 192 184.33125L267.975 173.55L213.4875 121.6125A10.59375 10.59375 0 0 1 210.43125 112.125L223.44375 37.93125L154.33125 73.44375A9.43125 9.43125 0 0 1 145.6875 73.44375z"
+          Stroke="{x:Null}"
+          Fill="#FF696969"
+          Stretch="Uniform"
+          Width="48"
+          Height="48"
+          SnapsToDevicePixels="False"
+          UseLayoutRounding="False"
+          StrokeThickness="0"
+          StrokeStartLineCap="flat"
+          StrokeEndLineCap="flat"
+          StrokeLineJoin="miter"/>
+        </Canvas>
     </Application.Resources>
 </Application>

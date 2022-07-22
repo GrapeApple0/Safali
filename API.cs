@@ -1,9 +1,13 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -59,16 +63,33 @@ namespace Safali
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-        public static void ChangeWindowStatus(IntPtr hwnd,int windowStatus)
+        public static void ChangeWindowStatus(IntPtr hwnd, int windowStatus)
         {
             ShowWindow(hwnd, windowStatus);
         }
 
-        public static Grid makeTabHeader(double tabwidth, MainWindow parent, string text = "New Tab", bool showFavicon = true)
+        private void RemoveClickEvent(object b)
+        {
+            FieldInfo f1 = typeof(Control).GetField("EventClick",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            object obj = f1.GetValue(b);
+            PropertyInfo pi = b.GetType().GetProperty("Events",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            EventHandlerList list = (EventHandlerList)pi.GetValue(b, null);
+            list.RemoveHandler(obj, list[obj]);
+        }
+
+        public static void Log(object content)
+        {
+            Debug.WriteLine(content);
+        }
+
+        public static Grid makeTabHeader(double tabwidth, MainWindow parent, string text = "New Tab", bool showFavicon = true, string faviconUrl = null)
         {
             //CloseButton
             var CloseButton = new Button();
             var Favicon = new Image();
+            InlineUIContainer inlineUIContainer = new InlineUIContainer();
             if (!showFavicon)
             {
                 CloseButton.Click += parent.CloseButton_Click;
@@ -87,18 +108,50 @@ namespace Safali
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                 };
+
+                Favicon.Width = 14;
+                Favicon.HorizontalAlignment = HorizontalAlignment.Center;
+                Favicon.VerticalAlignment = VerticalAlignment.Center;
+                Favicon.Margin = new Thickness(0, 0, 0, -2);
+                if (faviconUrl == null)
+                {
+                    Favicon.Source = new BitmapImage(new Uri(@"D:\Downloads\star-fill.png"));
+                }
+                else
+                {
+                    if (faviconUrl == "")
+                    {
+                        Favicon.Source = new BitmapImage(new Uri(@"D:\Downloads\star-fill.png"));
+                    }
+                    else
+                    {
+                        Favicon.Source = new BitmapImage(new Uri(faviconUrl));
+
+                    }
+                }
+                inlineUIContainer.Child = Favicon;
             }
             else// Favicon
             {
                 Favicon.Width = 17;
                 Favicon.Height = 17;
                 Favicon.HorizontalAlignment = HorizontalAlignment.Center;
-                Favicon.Source = new BitmapImage(new Uri("https://www.google.com/s2/favicons?domain=https://04.si"));
+                Favicon.VerticalAlignment = VerticalAlignment.Center;
+                if (faviconUrl == null)
+                {
+                    Favicon.Source = new BitmapImage(new Uri(@"D:\Downloads\star-fill.png"));
+                }
+                else
+                {
+                    Favicon.Source = new BitmapImage(new Uri(faviconUrl));
+                }
                 Grid.SetColumn(Favicon, 0);
             }
             //HeaderText
             var headerText = new TextBlock();
-            headerText.Text = text;
+            headerText.Inlines.Add(inlineUIContainer);
+            Run run = new Run(text);
+            headerText.Inlines.Add(run);
             headerText.Height = 18;
             headerText.Margin = new Thickness(24, 0, 24, 0);
             headerText.TextAlignment = TextAlignment.Center;
