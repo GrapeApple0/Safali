@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Safali"
+        xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
         xmlns:Wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf" x:Name="window"
         x:Class="Safali.MainWindow"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
@@ -173,14 +174,14 @@
                         </Grid>
                     </ControlTemplate>
                 </TabControl.Template>
-                <TabItem Margin="-2,1,-2,-4" Width="215" MinWidth="215" SizeChanged="TabItem_SizeChanged">
+                <!--TabItem Margin="-2,1,-2,-4" Width="215" MinWidth="215" SizeChanged="TabItem_SizeChanged">
                     <TabItem.Header>
                         <Grid MinWidth="205">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="17" />
                                 <ColumnDefinition MinWidth="190" Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <!--Button Click="CloseButton_Click"
+                            <Button Click="CloseButton_Click"
                                     HorizontalAlignment="Center"
                                     Background="{x:Null}"
                                     BorderBrush="{x:Null}"
@@ -196,9 +197,9 @@
                                        VerticalAlignment="Center"
                                        Kind="X" Background="Transparent" />
                                 </Button.Content>
-                            </Button-->
-                            <Image Source="https://www.google.com/s2/favicons?domain=04.si"/>
-                            <TextBlock Grid.Column="1" Margin="24,0,24,0" TextAlignment="Center">
+                            </Button>
+                            <Image Source="{svgc:SvgImage Source=D:\Downloads\FontAwesome-GlobeAmericasSolid.svg}"/>
+                            <TextBlock Grid.Column="1" Margin="5,0,0,0" TextAlignment="Center">
 
                             </TextBlock>
                         </Grid>
@@ -206,7 +207,7 @@
                     <Grid Background="White">
                         <Wpf:WebView2 x:Name="webview21" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="https://04.si/" NavigationCompleted="WebView2_NavigationCompleted" SourceChanged="WebView2_SourceChanged" SourceUpdated="WebView2_SourceUpdated"/>
                     </Grid>
-                </TabItem>
+                </TabItem-->
             </TabControl>
             <WindowsFormsHost Grid.Column="2" x:Name="windowsFormsHost1" Margin="0,55,0,0" HorizontalAlignment="Stretch" SizeChanged="windowsFormsHost1_SizeChanged" Background="White" Visibility="Collapsed"/>
             <GridSplitter x:Name="gridSplitter1" Grid.Column="1" Background="#FFD4D4D4" Width="7" HorizontalAlignment="Stretch" Margin="0,55,0,-2" Foreground="{x:Null}" Visibility="Collapsed" />

@@ -61,22 +61,13 @@ namespace Safali
         public static extern IntPtr FindWindowByCaption(IntPtr ZeroOnly, string lpWindowName);
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
+        public static extern IntPtr GetParent(IntPtr hWnd);
 
         public static void ChangeWindowStatus(IntPtr hwnd, int windowStatus)
         {
             ShowWindow(hwnd, windowStatus);
-        }
-
-        private void RemoveClickEvent(object b)
-        {
-            FieldInfo f1 = typeof(Control).GetField("EventClick",
-                BindingFlags.Static | BindingFlags.NonPublic);
-            object obj = f1.GetValue(b);
-            PropertyInfo pi = b.GetType().GetProperty("Events",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            EventHandlerList list = (EventHandlerList)pi.GetValue(b, null);
-            list.RemoveHandler(obj, list[obj]);
         }
 
         public static void Log(object content)
@@ -84,7 +75,35 @@ namespace Safali
             Debug.WriteLine(content);
         }
 
-        public static Grid makeTabHeader(double tabwidth, MainWindow parent, string text = "New Tab", bool showFavicon = true, string faviconUrl = null)
+        public static T FindVisualChild<T>(DependencyObject d) where T : DependencyObject
+        {
+            if (d == null) return null;
+
+            try
+            {
+                for (int i = 0; i <= VisualTreeHelper.GetChildrenCount(d) - 1; i++)
+                {
+                    DependencyObject root = VisualTreeHelper.GetChild(d, i);
+                    if (root != null && root is T)
+                    {
+                        return root as T;
+                    }
+                    else
+                    {
+                        T child = FindVisualChild<T>(root);
+                        if (child != null) return child;
+                    }
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static Grid makeTabHeader(MainWindow parent, string text = "New Tab", bool showFavicon = true, string faviconUrl = "")
         {
             //CloseButton
             var CloseButton = new Button();
@@ -113,21 +132,14 @@ namespace Safali
                 Favicon.HorizontalAlignment = HorizontalAlignment.Center;
                 Favicon.VerticalAlignment = VerticalAlignment.Center;
                 Favicon.Margin = new Thickness(0, 0, 0, -2);
-                if (faviconUrl == null)
+                if (faviconUrl == "")
                 {
                     Favicon.Source = new BitmapImage(new Uri(@"D:\Downloads\star-fill.png"));
                 }
                 else
                 {
-                    if (faviconUrl == "")
-                    {
-                        Favicon.Source = new BitmapImage(new Uri(@"D:\Downloads\star-fill.png"));
-                    }
-                    else
-                    {
-                        Favicon.Source = new BitmapImage(new Uri(faviconUrl));
+                    Favicon.Source = new BitmapImage(new Uri(faviconUrl));
 
-                    }
                 }
                 inlineUIContainer.Child = Favicon;
             }
@@ -137,7 +149,7 @@ namespace Safali
                 Favicon.Height = 17;
                 Favicon.HorizontalAlignment = HorizontalAlignment.Center;
                 Favicon.VerticalAlignment = VerticalAlignment.Center;
-                if (faviconUrl == null)
+                if (faviconUrl == "")
                 {
                     Favicon.Source = new BitmapImage(new Uri(@"D:\Downloads\star-fill.png"));
                 }
@@ -150,6 +162,10 @@ namespace Safali
             //HeaderText
             var headerText = new TextBlock();
             headerText.Inlines.Add(inlineUIContainer);
+            if (text == "")
+            {
+                text = "新しいタブ";
+            }
             Run run = new Run(text);
             headerText.Inlines.Add(run);
             headerText.Height = 18;
