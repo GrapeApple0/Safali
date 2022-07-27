@@ -1,0 +1,14 @@
+﻿<Window x:Class="Safali.Debug"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Safali"
+        mc:Ignorable="d"
+        Title="Debug" Height="450" Width="255" ResizeMode="NoResize" Topmost="True">
+    <Grid Background="#FF333333">
+        <TextBox x:Name="log" TextWrapping="Wrap"  Margin="0,0,0,180" Background="#FF333333" Foreground="#FFD4D4D4"/>
+        <Button x:Name="autoresize" Content="autoresize" HorizontalAlignment="Left" Margin="0,259,0,0" VerticalAlignment="Top" Click="autoresize_Click"/>
+        <CheckBox x:Name="fullscreen" Content="FullScreen" HorizontalAlignment="Left" Margin="70,259,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="fullscreen_Click"/>
+    </Grid>
+</Window>

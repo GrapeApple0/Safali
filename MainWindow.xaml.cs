@@ -7,19 +7,14 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
-using SharpVectors;
 
 namespace Safali
 {
-    /// <summary>
-    /// MainWindow.xaml の相互作用ロジック
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -27,23 +22,13 @@ namespace Safali
             InitializeComponent();
         }
 
-        Uri uri;
-        private WebView2 getSelectedWebView(Grid content = null)
-        {
-            var grid = content ?? (tab.SelectedContent as Grid);
-            WebView2 webview = null;
-            if (grid.Children.Count != 0)
-            {
-                webview = grid.Children[0] as WebView2;
-            }
-            else if (fullscreen.Children.Count != 0)
-            {
-                webview = fullscreen.Children[0] as WebView2;
-            }
-            return webview;
-        }
+        #region 変数
+        public static Uri uri;
+        bool isloaded = false;
+        Debug debug;
+        #endregion
 
-        #region ActionButtons
+        #region ボタン類
         private void Reload(object sender, RoutedEventArgs e)
         {
             getSelectedWebView().Reload();
@@ -55,6 +40,7 @@ namespace Safali
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
             };
+            Log("Reloading");
         }
 
         private void forward(object sender, RoutedEventArgs e)
@@ -74,21 +60,29 @@ namespace Safali
         }
         #endregion
 
-        #region window
+        #region ウィンドウ
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            debug = new Debug(this);
+            debug.Show();
             _panel = new System.Windows.Forms.Panel();
             windowsFormsHost1.Child = _panel;
             makenewTab();
+            Log(getSelectedWebView().Source);
+            await Task.Delay(1000);
             await getSelectedWebView().EnsureCoreWebView2Async();
             getSelectedWebView().CoreWebView2.ContainsFullScreenElementChanged += this.CoreWebView2_ContainsFullScreenElementChanged;
             HideDevTools();
             uri = getSelectedWebView().Source;
+            address.TextAlignment = TextAlignment.Center;
+            addressApply();
+            this.Icon = BitmapFrame.Create(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Safali.icon.png"));
         }
 
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);
+            debug.Close();
             if (_process != null)
             {
                 _process.Refresh();
@@ -97,7 +91,7 @@ namespace Safali
         }
         #endregion
 
-        #region address box
+        #region アドレス欄
         private void addressApply()
         {
             uri = getSelectedWebView().Source;
@@ -146,7 +140,7 @@ namespace Safali
         private void address_GotFocus(object sender, RoutedEventArgs e)
         {
             address.TextAlignment = TextAlignment.Left;
-            address.Text = uri.ToString();
+            address.SelectAll();
         }
 
         private void address_LostFocus(object sender, RoutedEventArgs e)
@@ -156,7 +150,7 @@ namespace Safali
         }
         #endregion
 
-        #region tab
+        #region タブ
         private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             ScrollViewer scv = (ScrollViewer)sender;
@@ -170,28 +164,14 @@ namespace Safali
             {
                 Application.Current.Shutdown();
             }
+            wv2s.Children.RemoveAt(tab.SelectedIndex);
             tab.Items.RemoveAt(tab.SelectedIndex);
+
         }
 
-        private void applyIcon()
+        private void tab_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            foreach (TabItem item in tab.Items)
-            {
-                var wv2 = ((item.Content as Grid).Children[0] as WebView2);
-                if (item == tab.SelectedItem && wv2.CoreWebView2 != null)
-                {
-                    item.Header = API.makeTabHeader(this, wv2.CoreWebView2.DocumentTitle, false, wv2.CoreWebView2.FaviconUri);
-                }
-                else if(wv2.CoreWebView2 != null)
-                {
-                    item.Header = API.makeTabHeader(this, wv2.CoreWebView2.DocumentTitle, true, wv2.CoreWebView2.FaviconUri);
-                }
-            }
-        }
-
-        private void AutoRisizeTab()
-        {
-
+            AutoRisizeTab();
         }
 
         private void tab_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -201,10 +181,34 @@ namespace Safali
             );
             tab.Dispatcher.BeginInvoke(new Action(async () =>
             {
+                int i = 0;
                 foreach (TabItem item in tab.Items)
                 {
-                    await ((item.Content as Grid).Children[0] as WebView2).EnsureCoreWebView2Async();
-                    item.Header = API.makeTabHeader(this, ((item.Content as Grid).Children[0] as WebView2).CoreWebView2.DocumentTitle ?? "New Tab", item != tab.SelectedItem, ((item.Content as Grid).Children[0] as WebView2).CoreWebView2.FaviconUri);
+                    await ((wv2s.Children[i] as Grid).Children[0] as WebView2).EnsureCoreWebView2Async();
+                    item.Header = API.makeTabHeader(this, ((wv2s.Children[i] as Grid).Children[0] as WebView2).CoreWebView2.DocumentTitle ?? "新しいタブ", item != tab.SelectedItem, ((wv2s.Children[i] as Grid).Children[0] as WebView2).CoreWebView2.FaviconUri, (int)(item.Width - 10));
+                    i++;
+                }
+                AutoRisizeTab();
+            }));
+            try
+            {
+                this.Title = (((wv2s.Children[tab.SelectedIndex] as Grid).Children[0] as WebView2).CoreWebView2.DocumentTitle ?? "新しいタブ") + " - Safali";
+            }
+            catch { }
+            wv2s.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                int i = 0;
+                foreach (Grid grid in wv2s.Children)
+                {
+                    if (i == tab.SelectedIndex)
+                    {
+                        grid.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        grid.Visibility = Visibility.Collapsed;
+                    }
+                    i++;
                 }
             }));
             if (_process != null)
@@ -212,6 +216,40 @@ namespace Safali
                 HideDevTools();
             }
             applyIcon();
+            debug.Dispatcher.BeginInvoke(new Action(() => Log($"Selected tab Changed\nNow Selected:{tab.SelectedIndex}")));
+        }
+
+        public void applyIcon()
+        {
+            if (this.FullScreen == false)
+            {
+                int i = 0;
+                foreach (TabItem item in tab.Items)
+                {
+                    var wv2 = ((wv2s.Children[i] as Grid).Children[0] as WebView2);
+                    if (wv2.CoreWebView2 != null)
+                    {
+                        item.Header = API.makeTabHeader(this, wv2.CoreWebView2.DocumentTitle, item != tab.SelectedItem, wv2.CoreWebView2.FaviconUri, (int)(item.Width - 10));
+                    }
+                    i++;
+                }
+            }
+
+        }
+
+        public void AutoRisizeTab()
+        {
+            var size = tab.ActualWidth / tab.Items.Count;
+            var minsize = 200;
+            if (size < minsize)
+                size = minsize;
+            int i = 0;
+            foreach (TabItem item in tab.Items)
+            {
+                item.Width = size;
+                (item.Header as Grid).Width = size - 10;
+                i++;
+            }
         }
 
         private void NewTab(object sender, RoutedEventArgs e)
@@ -219,44 +257,31 @@ namespace Safali
             makenewTab();
         }
 
-        private void makenewTab()
+        public void makenewTab(string url = "https://google.com/")
         {
             var webview = new WebView2();
             webview.NavigationCompleted += WebView2_NavigationCompleted;
             webview.HorizontalAlignment = HorizontalAlignment.Stretch;
             webview.VerticalAlignment = VerticalAlignment.Stretch;
-            webview.Source = new Uri("https://google.com/");
+            webview.Source = new Uri(url);
             webview.NavigationCompleted += WebView2_NavigationCompleted;
             webview.SourceChanged += WebView2_SourceChanged;
             var grid = new Grid();
             grid.Children.Add(webview);
+            wv2s.Children.Add(grid);
             var tabitem = new TabItem();
-            tabitem.Content = grid;
             tabitem.Width = 215;
-            tabitem.Header = API.makeTabHeader(this);
+            tabitem.Header = API.makeTabHeader(this, width: (int)(tabitem.Width - 10));
             tabitem.Margin = new Thickness(-2, 1, -2, -4);
-            tabitem.SizeChanged += TabItem_SizeChanged;
             tab.Items.Add(tabitem);
             tab.SelectedItem = tabitem;
             NewTabBtn.IsEnabled = false;
             address.Text = webview.Source.ToString();
-        }
-
-        private void tab_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-
-        }
-
-        private void TabItem_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-
+            AutoRisizeTab();
         }
         #endregion
 
-        #region title
-        #endregion
-
-        #region FullScreen
+        #region フルスクリーン
         private bool fullScreen = false;
         private Grid parent;
 
@@ -268,32 +293,34 @@ namespace Safali
             set
             {
                 fullScreen = value;
-                try
+                if (value)
                 {
-                    if (value)
+                    if (fullscreen.Children.Count <= 0)
                     {
                         this.WindowState = WindowState.Normal;
                         this.WindowStyle = WindowStyle.None;
                         this.WindowState = WindowState.Maximized;
-                        parent = (Grid)VisualTreeHelper.GetParent(getSelectedWebView());
                         fullScreenWebView = getSelectedWebView();
+                        parent = (Grid)VisualTreeHelper.GetParent(getSelectedWebView());
                         parent.Children.Remove(fullScreenWebView);
                         fullscreen.Children.Add(fullScreenWebView);
+                        fullscreen.Visibility = Visibility.Visible;
                     }
-                    else
+                }
+                else
+                {
+                    if (fullscreen.Children.Count > 0)
                     {
                         this.Activate();
                         this.WindowStyle = WindowStyle.SingleBorderWindow;
                         this.WindowState = WindowState.Normal;
-                        fullscreen.Children.RemoveAt(0);
+                        fullscreen.Children.Remove(fullScreenWebView);
+                        fullscreen.Visibility = Visibility.Collapsed;
+                        Log(fullscreen.Children.Count);
                         parent.Children.Add(fullScreenWebView);
+                        getSelectedWebView().Focus();
                     }
                 }
-                catch
-                {
-
-                }
-
             }
         }
 
@@ -303,7 +330,7 @@ namespace Safali
         }
         #endregion
 
-        #region WebView2 event
+        #region WebView2のイベント
         private async void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             string script = File.ReadAllText(@"C:\Users\GrapeApple\Desktop\script.js");
@@ -312,6 +339,7 @@ namespace Safali
 
         private async void WebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
+            Log("Navigation Completed");
             await (sender as WebView2).EnsureCoreWebView2Async();
             (sender as WebView2).CoreWebView2.ContextMenuRequested += delegate (object s, CoreWebView2ContextMenuRequestedEventArgs __)
             {
@@ -337,28 +365,64 @@ namespace Safali
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
             };
-            (sender as WebView2).CoreWebView2.ContainsFullScreenElementChanged -= this.CoreWebView2_ContainsFullScreenElementChanged;
-            address.Text = getSelectedWebView().Source.ToString();
+            (sender as WebView2).CoreWebView2.ContainsFullScreenElementChanged += CoreWebView2_ContainsFullScreenElementChanged;
+            (sender as WebView2).CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
+            if (sender as WebView2 == getSelectedWebView())
+                address.Text = (sender as WebView2).Source.ToString();
             applyIcon();
             NewTabBtn.IsEnabled = true;
+            isloaded = true;
             await Task.Delay(500);
             var wv2 = sender as WebView2;
-            var wvparent = LogicalTreeHelper.GetParent(wv2) as Grid;     
+            var wvparent = LogicalTreeHelper.GetParent(wv2) as Grid;
             var parent = LogicalTreeHelper.GetParent(wvparent) as TabItem;
-            (parent ?? (tab.SelectedItem as TabItem)).Header = API.makeTabHeader(this, (sender as WebView2).CoreWebView2.DocumentTitle ?? "New Tab", parent != tab.SelectedItem, (sender as WebView2).CoreWebView2.FaviconUri);
-            //titleChange();
+            var title = (sender as WebView2).CoreWebView2.DocumentTitle;
+            if (title == "")
+                title = (sender as WebView2).Source.ToString();
+            (parent ?? (tab.SelectedItem as TabItem)).Header = API.makeTabHeader(this, title, (sender as WebView2) != getSelectedWebView(), (sender as WebView2).CoreWebView2.FaviconUri);
+            if ((sender as WebView2) == getSelectedWebView())
+            {
+                this.Title = ((sender as WebView2).CoreWebView2.DocumentTitle ?? "新しいタブ") + " - Safali";
+            }
+            AutoRisizeTab();
         }
 
-        private async void WebView2_SourceChanged(object sender, CoreWebView2SourceChangedEventArgs e)
+        private void WebView2_SourceChanged(object sender, CoreWebView2SourceChangedEventArgs e)
         {
-            await (sender as WebView2).EnsureCoreWebView2Async();
+            Log("Source Changed");
+            if (sender as WebView2 == getSelectedWebView())
+            {
+                isloaded = false;
+                var wv2 = sender as WebView2;
+                var wvparent = LogicalTreeHelper.GetParent(wv2) as Grid;
+                var parent = LogicalTreeHelper.GetParent(wvparent) as TabItem;
+                var title = (sender as WebView2).CoreWebView2.DocumentTitle;
+                if (title == "")
+                    title = (sender as WebView2).Source.ToString();
+                (parent ?? (tab.SelectedItem as TabItem)).Header = API.makeTabHeader(this, title, (sender as WebView2) != getSelectedWebView(), (sender as WebView2).CoreWebView2.FaviconUri);
+                this.Title = title + " - Safali";
+                address.Text = (sender as WebView2).Source.ToString();
+            }
         }
 
-        private async void WebView2_SourceUpdated(object sender, System.Windows.Data.DataTransferEventArgs e)
+        private void WebView2_SourceUpdated(object sender, System.Windows.Data.DataTransferEventArgs e)
         {
-            await (sender as WebView2).EnsureCoreWebView2Async();
+            Log("Source Updated");
+            if (sender as WebView2 == getSelectedWebView())
+            {
+                address.Text = (sender as WebView2).Source.ToString();
+            }
         }
 
+        private void CoreWebView2_NewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
+        {
+            if (!isloaded)
+            {
+                makenewTab(e.Uri);
+            }
+            isloaded = false;
+            e.Handled = true;
+        }
         #endregion
 
         #region DevTools
@@ -369,7 +433,6 @@ namespace Safali
         {
             if (_process == null)
                 return;
-
             API.SetWindowPos(_process.MainWindowHandle, IntPtr.Zero, -10, -35, (int)_panel.ClientSize.Width + 18, (int)_panel.ClientSize.Height + 43, API.SWP_NOZORDER | API.SWP_NOACTIVATE);
         }
 
@@ -404,7 +467,7 @@ namespace Safali
             main.ColumnDefinitions.Add(cd2);
             main.ColumnDefinitions.Add(cd3);
             (wv2 ?? getSelectedWebView()).CoreWebView2.OpenDevToolsWindow();
-            await Task.Delay(600);
+            await Task.Delay(1500);
             //Get foreground window
             Process[] processes = Process.GetProcessesByName("msedgewebview2");
             foreach (Process p in processes)
@@ -415,28 +478,11 @@ namespace Safali
                     IntPtr windowHandle = p.MainWindowHandle;
                     API.SetWindowLong(windowHandle, API.GWL_STYLE, (int)(API.GetWindowLong(windowHandle, API.GWL_STYLE) & (0xFFFFFFFF ^ API.WS_SYSMENU)));
                     API.SetParent(p.MainWindowHandle, _panel.Handle);
-                    int style = (int)API.GetWindowLong(_process.MainWindowHandle, API.GWL_STYLE);
+                    int style = API.GetWindowLong(_process.MainWindowHandle, API.GWL_STYLE);
                     style = style & ~API.WS_CAPTION & ~API.WS_THICKFRAME;
                     API.SetWindowLong(p.MainWindowHandle, API.GWL_STYLE, style);
                     ResizeEmbeddedApp();
-                }
-            }
-            if (API.GetParent(_process.Handle) != _panel.Handle)
-            {
-                processes = Process.GetProcessesByName("msedgewebview2");
-                foreach (Process p in processes)
-                {
-                    if (p.MainWindowTitle.StartsWith("DevTools"))
-                    {
-                        _process = p;
-                        IntPtr windowHandle = p.MainWindowHandle;
-                        API.SetWindowLong(windowHandle, API.GWL_STYLE, (int)(API.GetWindowLong(windowHandle, API.GWL_STYLE) & (0xFFFFFFFF ^ API.WS_SYSMENU)));
-                        API.SetParent(p.MainWindowHandle, _panel.Handle);
-                        int style = (int)API.GetWindowLong(_process.MainWindowHandle, API.GWL_STYLE);
-                        style = style & ~API.WS_CAPTION & ~API.WS_THICKFRAME;
-                        API.SetWindowLong(p.MainWindowHandle, API.GWL_STYLE, style);
-                        ResizeEmbeddedApp();
-                    }
+                    Log("Set DevTools");
                 }
             }
         }
@@ -464,6 +510,29 @@ namespace Safali
             ResizeEmbeddedApp();
         }
 
+        #endregion
+
+        #region その他色々
+        private void Log(object content)
+        {
+            debug.log.Text += content.ToString() + "\n";
+            debug.log.ScrollToEnd();
+        }
+
+        private WebView2 getSelectedWebView()
+        {
+            var grid = ((Grid)wv2s.Children[tab.SelectedIndex]);
+            WebView2 webview = null;
+            if (grid.Children.Count != 0)
+            {
+                webview = grid.Children[0] as WebView2;
+            }
+            else if (fullscreen.Children.Count != 0)
+            {
+                webview = fullscreen.Children[0] as WebView2;
+            }
+            return webview;
+        }
         #endregion
     }
 }

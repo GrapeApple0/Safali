@@ -15,6 +15,7 @@ namespace Safali
 {
     public class API
     {
+        #region Win32API
         public const int WS_BORDER = 8388608;
         public const int WS_DLGFRAME = 4194304;
         public const int WS_CAPTION = WS_BORDER | WS_DLGFRAME;
@@ -32,6 +33,8 @@ namespace Safali
         public const uint MF_REMOVE = 0x1000;
         public const int SWP_NOZORDER = 0x0004;
         public const int SWP_NOACTIVATE = 0x0010;
+        public const int SW_MAXIMIZE = 3;
+        public const int SW_MINIMIZE = 6;
         [DllImport("user32.dll", SetLastError = true)]
         public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
         [DllImport("user32.dll")]
@@ -40,6 +43,13 @@ namespace Safali
         public static extern IntPtr SetParent(IntPtr hWnd, IntPtr hWndParent);
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, int uFlags);
+        [DllImport("user32.dll", EntryPoint = "FindWindow")]
+        public static extern IntPtr FindWindowByCaption(IntPtr ZeroOnly, string lpWindowName);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
+        public static extern IntPtr GetParent(IntPtr hWnd);
         public static void MakeExternalWindowBorderless(IntPtr MainWindowHandle)
         {
             int Style = 0;
@@ -55,117 +65,54 @@ namespace Safali
             SetWindowPos(MainWindowHandle, new IntPtr(0), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
         }
 
-        public const int SW_MAXIMIZE = 3;
-        public const int SW_MINIMIZE = 6;
-        [DllImport("user32.dll", EntryPoint = "FindWindow")]
-        public static extern IntPtr FindWindowByCaption(IntPtr ZeroOnly, string lpWindowName);
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
-        public static extern IntPtr GetParent(IntPtr hWnd);
-
         public static void ChangeWindowStatus(IntPtr hwnd, int windowStatus)
         {
             ShowWindow(hwnd, windowStatus);
         }
+        #endregion
 
-        public static void Log(object content)
-        {
-            Debug.WriteLine(content);
-        }
-
-        public static T FindVisualChild<T>(DependencyObject d) where T : DependencyObject
-        {
-            if (d == null) return null;
-
-            try
-            {
-                for (int i = 0; i <= VisualTreeHelper.GetChildrenCount(d) - 1; i++)
-                {
-                    DependencyObject root = VisualTreeHelper.GetChild(d, i);
-                    if (root != null && root is T)
-                    {
-                        return root as T;
-                    }
-                    else
-                    {
-                        T child = FindVisualChild<T>(root);
-                        if (child != null) return child;
-                    }
-                }
-
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        public static Grid makeTabHeader(MainWindow parent, string text = "New Tab", bool showFavicon = true, string faviconUrl = "")
+        public static Grid makeTabHeader(MainWindow parent, string text = "New Tab", bool hideCloseBtn = true, string faviconUrl = "", int width = 0)
         {
             //CloseButton
             var CloseButton = new Button();
             var Favicon = new Image();
             InlineUIContainer inlineUIContainer = new InlineUIContainer();
-            if (!showFavicon)
+            CloseButton.Click += parent.CloseButton_Click;
+            CloseButton.Width = 17;
+            CloseButton.Height = 17;
+            CloseButton.HorizontalAlignment = HorizontalAlignment.Center;
+            CloseButton.Background = null;
+            CloseButton.BorderBrush = null;
+            if (hideCloseBtn)
+                CloseButton.Visibility = Visibility.Hidden;
+            Grid.SetColumn(CloseButton, 0);
+            CloseButton.Content = new MahApps.Metro.IconPacks.PackIconBootstrapIcons()
             {
-                CloseButton.Click += parent.CloseButton_Click;
-                CloseButton.Width = 17;
-                CloseButton.Height = 17;
-                CloseButton.HorizontalAlignment = HorizontalAlignment.Center;
-                CloseButton.Background = null;
-                CloseButton.BorderBrush = null;
-                Grid.SetColumn(CloseButton, 0);
-                CloseButton.Content = new MahApps.Metro.IconPacks.PackIconBootstrapIcons()
-                {
-                    Kind = MahApps.Metro.IconPacks.PackIconBootstrapIconsKind.X,
-                    Width = 7,
-                    Height = 7,
-                    Background = new SolidColorBrush(Colors.Transparent),
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center,
-                };
-
-                Favicon.Width = 14;
-                Favicon.HorizontalAlignment = HorizontalAlignment.Center;
-                Favicon.VerticalAlignment = VerticalAlignment.Center;
-                Favicon.Margin = new Thickness(0, 0, 0, -2);
-                if (faviconUrl == "")
-                {
-                    Favicon.Source = new BitmapImage(new Uri(@"D:\Downloads\star-fill.png"));
-                }
-                else
-                {
-                    Favicon.Source = new BitmapImage(new Uri(faviconUrl));
-
-                }
-                inlineUIContainer.Child = Favicon;
-            }
-            else// Favicon
+                Kind = MahApps.Metro.IconPacks.PackIconBootstrapIconsKind.X,
+                Width = 7,
+                Height = 7,
+                Background = new SolidColorBrush(Colors.Transparent),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            Favicon.Width = 14;
+            Favicon.HorizontalAlignment = HorizontalAlignment.Center;
+            Favicon.VerticalAlignment = VerticalAlignment.Center;
+            Favicon.Margin = new Thickness(0, 0, 0, -2);
+            if (faviconUrl == "")
             {
-                Favicon.Width = 17;
-                Favicon.Height = 17;
-                Favicon.HorizontalAlignment = HorizontalAlignment.Center;
-                Favicon.VerticalAlignment = VerticalAlignment.Center;
-                if (faviconUrl == "")
-                {
-                    Favicon.Source = new BitmapImage(new Uri(@"D:\Downloads\star-fill.png"));
-                }
-                else
-                {
-                    Favicon.Source = new BitmapImage(new Uri(faviconUrl));
-                }
-                Grid.SetColumn(Favicon, 0);
+                Favicon.Source = BitmapFrame.Create(Assembly.GetExecutingAssembly().GetManifestResourceStream("Safali.star.png"));
             }
+            else
+            {
+                Favicon.Source = new BitmapImage(new Uri(faviconUrl));
+            }
+            inlineUIContainer.Child = Favicon;
             //HeaderText
             var headerText = new TextBlock();
             headerText.Inlines.Add(inlineUIContainer);
             if (text == "")
-            {
                 text = "新しいタブ";
-            }
             Run run = new Run(text);
             headerText.Inlines.Add(run);
             headerText.Height = 18;
@@ -181,29 +128,11 @@ namespace Safali
             c2.MinWidth = 190;
             grid1.ColumnDefinitions.Add(c1);
             grid1.ColumnDefinitions.Add(c2);
-            if (!showFavicon)
-            {
-                grid1.Children.Add(CloseButton);
-            }
-            else
-            {
-                grid1.Children.Add(Favicon);
-            }
+            grid1.Children.Add(CloseButton);
+            if (width > 0)
+                grid1.Width = width;
             grid1.Children.Add(headerText);
             return grid1;
-        }
-    }
-
-    public class MinusConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return ((double)value) - 15.0;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
         }
     }
 }
