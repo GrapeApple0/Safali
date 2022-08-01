@@ -1,12 +1,9 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -71,7 +68,21 @@ namespace Safali
         }
         #endregion
 
-        public static Grid makeTabHeader(MainWindow parent, string text = "New Tab", bool hideCloseBtn = true, string faviconUrl = "", int width = 0)
+        private static FormattedText CreateFormatedText(string s, double width, TextAlignment align, MainWindow parent)
+        {
+            FormattedText fmtText = new FormattedText(
+                s,
+                CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                new Typeface("メイリオ"),
+                35, Brushes.Black,
+                VisualTreeHelper.GetDpi(parent).PixelsPerDip);
+            fmtText.MaxTextWidth = width;
+            fmtText.TextAlignment = align;
+            return fmtText;
+        }
+
+        public static Grid makeTabHeader(MainWindow parent, string text = "新しいタブ", bool hideCloseBtn = true, string faviconUrl = "", int width = 0, string url = "")
         {
             //CloseButton
             var CloseButton = new Button();
@@ -95,17 +106,59 @@ namespace Safali
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
             };
-            Favicon.Width = 14;
+            Favicon.Width = 15;
             Favicon.HorizontalAlignment = HorizontalAlignment.Center;
             Favicon.VerticalAlignment = VerticalAlignment.Center;
-            Favicon.Margin = new Thickness(0, 0, 0, -2);
+            Favicon.Margin = new Thickness(0, 0, 0, -3);
+            VisualBrush vb = new VisualBrush();
+            var border = new Border();
+            border.Width = Favicon.ActualWidth;
+            border.Height = Favicon.ActualHeight;
+            border.CornerRadius = new CornerRadius(5);
+            vb.Visual = border;
             if (faviconUrl == "")
             {
-                Favicon.Source = BitmapFrame.Create(Assembly.GetExecutingAssembly().GetManifestResourceStream("Safali.star.png"));
+                if (url == "")
+                {
+                    Favicon.Source = BitmapFrame.Create(Assembly.GetExecutingAssembly().GetManifestResourceStream("Safali.star.png"));
+                }
+                else
+                {
+                    ImageBrush imgBrush = new ImageBrush();
+                    imgBrush.ImageSource = new BitmapImage(new Uri(@"D:\Downloads\square.png", UriKind.Absolute));
+                    DrawingGroup drawingGroup = new DrawingGroup();
+                    using (DrawingContext drawContent = drawingGroup.Open())
+                    {
+                        drawContent.DrawImage(imgBrush.ImageSource, new Rect(0, 0, 48, 48));
+                        var str = (new Uri(url).DnsSafeHost)[0].ToString();
+                        var formattedText = CreateFormatedText(str, 37, TextAlignment.Center, parent);
+                        var point = new Point(3,0);
+                        drawContent.DrawText(formattedText, point);
+                    }
+                    Favicon.Source = new DrawingImage(drawingGroup);
+                }
             }
             else
             {
-                Favicon.Source = new BitmapImage(new Uri(faviconUrl));
+                try
+                {
+                    Favicon.Source = new BitmapImage(new Uri(faviconUrl));
+                }
+                catch
+                {
+                    ImageBrush imgBrush = new ImageBrush();
+                    imgBrush.ImageSource = new BitmapImage(new Uri(@"D:\Downloads\square.png", UriKind.Absolute));
+                    DrawingGroup drawingGroup = new DrawingGroup();
+                    using (DrawingContext drawContent = drawingGroup.Open())
+                    {
+                        drawContent.DrawImage(imgBrush.ImageSource, new Rect(0, 0, 48, 48));
+                        var str = (new Uri(url).DnsSafeHost)[0].ToString();
+                        var formattedText = CreateFormatedText(str, 37, TextAlignment.Center, parent);
+                        var point = new Point(3, 0);
+                        drawContent.DrawText(formattedText, point);
+                    }
+                    Favicon.Source = new DrawingImage(drawingGroup);
+                }
             }
             inlineUIContainer.Child = Favicon;
             //HeaderText
@@ -116,16 +169,17 @@ namespace Safali
             Run run = new Run(text);
             headerText.Inlines.Add(run);
             headerText.Height = 18;
-            headerText.Margin = new Thickness(24, 0, 24, 0);
+            headerText.Margin = new Thickness(0, 0, 30, 0);
             headerText.TextAlignment = TextAlignment.Center;
+            headerText.TextWrapping = TextWrapping.NoWrap;
             Grid.SetColumn(headerText, 1);
             //Grid
             var grid1 = new Grid();
-            grid1.MinWidth = 205;
+            grid1.MinWidth = width - 20;
             ColumnDefinition c1 = new ColumnDefinition();
             c1.Width = new GridLength(17, GridUnitType.Pixel);
             ColumnDefinition c2 = new ColumnDefinition();
-            c2.MinWidth = 190;
+            c2.MinWidth = width - 25;
             grid1.ColumnDefinitions.Add(c1);
             grid1.ColumnDefinitions.Add(c2);
             grid1.Children.Add(CloseButton);

@@ -9,6 +9,8 @@
     <Grid Background="#FF333333">
         <TextBox x:Name="log" TextWrapping="Wrap"  Margin="0,0,0,180" Background="#FF333333" Foreground="#FFD4D4D4"/>
         <Button x:Name="autoresize" Content="autoresize" HorizontalAlignment="Left" Margin="0,259,0,0" VerticalAlignment="Top" Click="autoresize_Click"/>
-        <CheckBox x:Name="fullscreen" Content="FullScreen" HorizontalAlignment="Left" Margin="70,259,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="fullscreen_Click"/>
+        <CheckBox x:Name="fullscreen" Content="FullScreen" HorizontalAlignment="Left" Margin="63,262,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="fullscreen_Click"/>
+        <CheckBox x:Name="DevTools" Content="DevTools" HorizontalAlignment="Left" Margin="141,261,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="DevTools_Click" />
+        <Button x:Name="SelText" Content="Button" HorizontalAlignment="Left" Margin="0,284,0,0" VerticalAlignment="Top" Click="SelText_Click"/>
     </Grid>
 </Window>

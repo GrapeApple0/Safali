@@ -23,5 +23,18 @@ namespace Safali
         {
             mainWindow.FullScreen = (bool)fullscreen.IsChecked;
         }
+
+        private void DevTools_Click(object sender, RoutedEventArgs e)
+        {
+            if ((bool)DevTools.IsChecked)
+                mainWindow.ShowDevTools();
+            else
+                mainWindow.HideDevTools();
+        }
+
+        private void SelText_Click(object sender, RoutedEventArgs e)
+        {
+            mainWindow.address.SelectAll();
+        }
     }
 }

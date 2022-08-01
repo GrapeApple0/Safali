@@ -13,7 +13,7 @@
         Loaded="Window_Loaded">
     <Window.Resources>
         <SolidColorBrush x:Key="NormalButtonBrush" Color="#424242"/>
-        <SolidColorBrush x:Key="NormalBackgroundBrush" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="NormalBackgroundBrush" Color="#FFD8D8D8"/>
         <SolidColorBrush x:Key="HoverButtonBrush" Color="#424242"/>
         <SolidColorBrush x:Key="HoverBackgroundBrush" Color="#FFCACACA"/>
         <Style x:Key="HoverButtonStyle" TargetType="{x:Type Button}">
@@ -69,118 +69,120 @@
     </Window.Resources>
     <Grid>
         <Grid x:Name="main" Background="White">
-            <TabControl x:Name="tab" Margin="-2,30,1,-4" IsTabStop="False" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged" Grid.ColumnSpan="2" VerticalAlignment="Top" Height="22">
-                <TabControl.Resources>
-                    <Style TargetType="{x:Type TabItem}">
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="{x:Type TabItem}">
-                                    <Grid x:Name="Panel">
-                                        <ContentPresenter x:Name="ContentSite"
+            <Grid>
+                <TabControl x:Name="tab" Margin="-2,30,0,0" IsTabStop="False" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged" VerticalAlignment="Top" Height="22">
+                    <TabControl.Resources>
+                        <Style TargetType="{x:Type TabItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type TabItem}">
+                                        <Grid x:Name="Panel">
+                                            <ContentPresenter x:Name="ContentSite"
                                         VerticalAlignment="Center"
                                         HorizontalAlignment="Center"
                                         ContentSource="Header"
                                         Margin="10,2"/>
-                                    </Grid>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="Panel" Property="Background" Value="#FFFFFFFF" />
-                                        </Trigger>
-                                        <Trigger Property="IsSelected" Value="False">
-                                            <Setter TargetName="Panel" Property="Background" Value="#FFCACACA" />
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                    <Style TargetType="{x:Type Button}">
-                        <Setter Property="Foreground" Value="{StaticResource NormalButtonBrush}"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="{x:Type Button}">
-                                    <Border x:Name="CloseButtonBorder" BorderThickness="0.25" CornerRadius="3" BorderBrush="#FFCACACA" Background="{StaticResource NormalBackgroundBrush}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Panel" Property="Background" Value="#FFFFFFFF" />
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="False">
+                                                <Setter TargetName="Panel" Property="Background" Value="#FFCACACA" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                        <Style TargetType="{x:Type Button}">
+                            <Setter Property="Foreground" Value="{StaticResource NormalButtonBrush}"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type Button}">
+                                        <Border x:Name="CloseButtonBorder" BorderThickness="0.25" CornerRadius="3" BorderBrush="#FFCACACA" Background="#FFFFFF">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
 
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="CloseButtonBorder" Property="BorderBrush" Value="#00000000" />
-                                            <Setter TargetName="CloseButtonBorder" Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
-                                            <Setter Property="Foreground" Value="{StaticResource HoverButtonBrush}"/>
-                                        </Trigger>
-                                        <Trigger Property="IsPressed" Value="True">
-                                            <Setter TargetName="CloseButtonBorder" Property="Background" Value="{StaticResource NormalBackgroundBrush}" />
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </TabControl.Resources>
-                <TabControl.Template>
-                    <ControlTemplate TargetType="{x:Type TabControl}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
-                            <ScrollViewer ScrollViewer.CanContentScroll="True"  HorizontalScrollBarVisibility="Hidden"  VerticalScrollBarVisibility="Disabled" Height="24" VerticalAlignment="Center" Visibility="Visible" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" Margin="0,0,0,-2" >
-                                <ScrollViewer.Resources>
-                                    <Style x:Key="RepeatButtonTransparent" TargetType="{x:Type RepeatButton}">
-                                        <Setter Property="OverridesDefaultStyle" Value="true"/>
-                                        <Setter Property="Background" Value="#505050"/>
-                                        <Setter Property="Focusable" Value="false"/>
-                                        <Setter Property="IsTabStop" Value="false"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="{x:Type RepeatButton}">
-                                                    <Border Background="{TemplateBinding Background}" Height="{TemplateBinding Height}" Width="{TemplateBinding Width}" CornerRadius="10"/>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                    <Style x:Key="ScrollBarThumbVertical" TargetType="{x:Type Thumb}">
-                                        <Setter Property="OverridesDefaultStyle" Value="true"/>
-                                        <Setter Property="IsTabStop" Value="false"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="{x:Type Thumb}">
-                                                    <Border x:Name="rectangle" Background="Black" Height="{TemplateBinding Height}" SnapsToDevicePixels="True" Width="{TemplateBinding Width}" CornerRadius="8"/>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="true">
-                                                            <Setter Property="Background" TargetName="rectangle" Value="Black"/>
-                                                        </Trigger>
-                                                        <Trigger Property="IsDragging" Value="true">
-                                                            <Setter Property="Background" TargetName="rectangle" Value="Black"/>
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </ScrollViewer.Resources>
-                                <TabPanel x:Name="HeaderPanel"
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="CloseButtonBorder" Property="BorderBrush" Value="#00000000" />
+                                                <Setter TargetName="CloseButtonBorder" Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                                <Setter Property="Foreground" Value="{StaticResource HoverButtonBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="CloseButtonBorder" Property="Background" Value="#FFFFFF" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TabControl.Resources>
+                    <TabControl.Template>
+                        <ControlTemplate TargetType="{x:Type TabControl}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <ScrollViewer x:Name="srlvew" ScrollViewer.CanContentScroll="True"  HorizontalScrollBarVisibility="Hidden"  VerticalScrollBarVisibility="Disabled" Height="24" VerticalAlignment="Center" Visibility="Visible" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" Margin="0,0,0,-2" Background="#FFA7A7A7" Initialized="srlvew_Initialized" >
+                                    <ScrollViewer.Resources>
+                                        <Style x:Key="RepeatButtonTransparent" TargetType="{x:Type RepeatButton}">
+                                            <Setter Property="OverridesDefaultStyle" Value="true"/>
+                                            <Setter Property="Background" Value="#505050"/>
+                                            <Setter Property="Focusable" Value="false"/>
+                                            <Setter Property="IsTabStop" Value="false"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                                                        <Border Background="{TemplateBinding Background}" Height="{TemplateBinding Height}" Width="{TemplateBinding Width}" CornerRadius="10"/>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                        <Style x:Key="ScrollBarThumbVertical" TargetType="{x:Type Thumb}">
+                                            <Setter Property="OverridesDefaultStyle" Value="true"/>
+                                            <Setter Property="IsTabStop" Value="false"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="{x:Type Thumb}">
+                                                        <Border x:Name="rectangle" Background="Black" Height="{TemplateBinding Height}" SnapsToDevicePixels="True" Width="{TemplateBinding Width}" CornerRadius="8"/>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="true">
+                                                                <Setter Property="Background" TargetName="rectangle" Value="Black"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsDragging" Value="true">
+                                                                <Setter Property="Background" TargetName="rectangle" Value="Black"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ScrollViewer.Resources>
+                                    <TabPanel x:Name="HeaderPanel"
                               Panel.ZIndex ="1" 
                               KeyboardNavigation.TabIndex="1"
                               Grid.Column="0"
                               Grid.Row="0"
                               Margin="2,-1,2,0"
                               IsItemsHost="true"/>
-                            </ScrollViewer>
-                            <ContentPresenter x:Name="PART_SelectedContentHost"
+                                </ScrollViewer>
+                                <ContentPresenter x:Name="PART_SelectedContentHost"
                                       SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
                                       Margin="{TemplateBinding Padding}"
                                       ContentSource="SelectedContent" Grid.Row="1"/>
-                        </Grid>
-                    </ControlTemplate>
-                </TabControl.Template>
-            </TabControl>
-            <Grid x:Name="wv2s" Grid.Column="0" Margin="0,54,0,0">
+                            </Grid>
+                        </ControlTemplate>
+                    </TabControl.Template>
+                </TabControl>
+                <Grid x:Name="wv2s" Grid.Column="0" Margin="0,54,0,0">
 
+                </Grid>
             </Grid>
-            <WindowsFormsHost Grid.Column="2" x:Name="windowsFormsHost1" Margin="0,55,0,0" HorizontalAlignment="Stretch" SizeChanged="windowsFormsHost1_SizeChanged" Background="White" Visibility="Collapsed"/>
-            <GridSplitter x:Name="gridSplitter1" Grid.Column="1" Background="#FFD4D4D4" Width="7" HorizontalAlignment="Stretch" Margin="0,55,0,-2" Foreground="{x:Null}" Visibility="Collapsed" />
+            <!--WindowsFormsHost Grid.Column="2" Margin="0,55,0,0" HorizontalAlignment="Stretch" SizeChanged="windowsFormsHost1_SizeChanged" Background="White" Visibility="Collapsed"/>
+            <GridSplitter Grid.Column="1" Background="#FFD4D4D4" Width="7" HorizontalAlignment="Stretch" Margin="0,55,0,-2" Foreground="{x:Null}" Visibility="Collapsed" /-->
             <Button x:Name="devClose" Grid.Column="3" HorizontalAlignment="Right" Style="{StaticResource HoverButtonStyle}" VerticalAlignment="Top" Width="13" Height="13" Margin="0,36,4,0" Visibility="Collapsed" Click="devClose_Click">
                 <Button.Content>
                     <iconPacks:PackIconBootstrapIcons 
@@ -194,7 +196,7 @@
         </Grid>
         <Grid VerticalAlignment="Stretch">
             <Grid HorizontalAlignment="Stretch" Margin="175,4,155,0" VerticalAlignment="Top">
-                <TextBox x:Name="address" 
+                <local:ClickSelectTextBox x:Name="address" 
                          TextWrapping="NoWrap"
                          Text="ExampleURL テスト"
                          VerticalAlignment="Center"
@@ -207,11 +209,11 @@
                          GotFocus="address_GotFocus"
                          LostFocus="address_LostFocus"
                          FontFamily="Meiryo">
-                    <TextBox.Resources>
+                    <local:ClickSelectTextBox.Resources>
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="CornerRadius" Value="3,0,0,3"/>
                         </Style>
-                        <Style TargetType="TextBox">
+                        <Style TargetType="local:ClickSelectTextBox">
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="{x:Type TextBox}">
@@ -227,10 +229,9 @@
                                 </Setter.Value>
                             </Setter>
                         </Style>
-                    </TextBox.Resources>
-                </TextBox>
+                    </local:ClickSelectTextBox.Resources>
+                </local:ClickSelectTextBox>
             </Grid>
-
             <Button x:Name="ReloadBtn"
                     Style="{StaticResource ReloadBtn}"
                     HorizontalAlignment="Right"
