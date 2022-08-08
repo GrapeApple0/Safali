@@ -5,12 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Safali"
         mc:Ignorable="d"
-        Title="Debug" Height="450" Width="255" ResizeMode="NoResize" Topmost="True">
+        Title="Debug" Height="450" Width="360" ResizeMode="NoResize" Topmost="True">
     <Grid Background="#FF333333">
         <TextBox x:Name="log" TextWrapping="Wrap"  Margin="0,0,0,180" Background="#FF333333" Foreground="#FFD4D4D4"/>
-        <Button x:Name="autoresize" Content="autoresize" HorizontalAlignment="Left" Margin="0,259,0,0" VerticalAlignment="Top" Click="autoresize_Click"/>
-        <CheckBox x:Name="fullscreen" Content="FullScreen" HorizontalAlignment="Left" Margin="63,262,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="fullscreen_Click"/>
-        <CheckBox x:Name="DevTools" Content="DevTools" HorizontalAlignment="Left" Margin="141,261,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="DevTools_Click" />
-        <Button x:Name="SelText" Content="Button" HorizontalAlignment="Left" Margin="0,284,0,0" VerticalAlignment="Top" Click="SelText_Click"/>
+        <Button x:Name="autoresize" Content="autoresize" HorizontalAlignment="Left" Margin="2,259,0,0" VerticalAlignment="Top" Click="autoresize_Click"/>
+        <CheckBox x:Name="fullscreen" Content="FullScreen" HorizontalAlignment="Left" Margin="65,262,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="fullscreen_Click"/>
+        <CheckBox x:Name="DevTools" Content="DevTools" HorizontalAlignment="Left" Margin="143,262,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="DevTools_Click" />
+        <CheckBox x:Name="AlwaysTop" Content="AlwaysTop" HorizontalAlignment="Left" Margin="215,261,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="AlwaysTop_Click" />
+        <Button x:Name="GetTitle" Content="GetTitle" HorizontalAlignment="Left" Margin="2,284,0,0" VerticalAlignment="Top" Width="58" Click="GetTitle_Click"/>
     </Grid>
 </Window>

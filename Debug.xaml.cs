@@ -36,5 +36,15 @@ namespace Safali
         {
             mainWindow.address.SelectAll();
         }
+
+        private void AlwaysTop_Click(object sender, RoutedEventArgs e)
+        {
+            mainWindow.Topmost = (bool)AlwaysTop.IsChecked;
+        }
+
+        private void GetTitle_Click(object sender, RoutedEventArgs e)
+        {
+            mainWindow.Log(mainWindow.getSelectedWebView().CoreWebView2.DocumentTitle);
+        }
     }
 }

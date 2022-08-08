@@ -82,7 +82,7 @@ namespace Safali
             return fmtText;
         }
 
-        public static Grid makeTabHeader(MainWindow parent, string text = "新しいタブ", bool hideCloseBtn = true, string faviconUrl = "", int width = 0, string url = "")
+        public static Grid makeTabHeader(MainWindow parent, string text = "新しいタブ", bool hideCloseBtn = true, string faviconUrl = "", int width = 0, string url = "", bool isPinned = false)
         {
             //CloseButton
             var CloseButton = new Button();
@@ -127,13 +127,16 @@ namespace Safali
                     ImageBrush imgBrush = new ImageBrush();
                     imgBrush.ImageSource = new BitmapImage(new Uri(@"D:\Downloads\square.png", UriKind.Absolute));
                     DrawingGroup drawingGroup = new DrawingGroup();
-                    using (DrawingContext drawContent = drawingGroup.Open())
+                    if ((new Uri(url).DnsSafeHost).Length > 0)
                     {
-                        drawContent.DrawImage(imgBrush.ImageSource, new Rect(0, 0, 48, 48));
-                        var str = (new Uri(url).DnsSafeHost)[0].ToString();
-                        var formattedText = CreateFormatedText(str, 37, TextAlignment.Center, parent);
-                        var point = new Point(3,0);
-                        drawContent.DrawText(formattedText, point);
+                        using (DrawingContext drawContent = drawingGroup.Open())
+                        {
+                            drawContent.DrawImage(imgBrush.ImageSource, new Rect(0, 0, 48, 48));
+                            var str = (new Uri(url).DnsSafeHost)[0].ToString();
+                            var formattedText = CreateFormatedText(str, 37, TextAlignment.Center, parent);
+                            var point = new Point(3, 0);
+                            drawContent.DrawText(formattedText, point);
+                        }
                     }
                     Favicon.Source = new DrawingImage(drawingGroup);
                 }
@@ -175,11 +178,11 @@ namespace Safali
             Grid.SetColumn(headerText, 1);
             //Grid
             var grid1 = new Grid();
-            grid1.MinWidth = width - 20;
+            grid1.MinWidth = width - 10;
             ColumnDefinition c1 = new ColumnDefinition();
             c1.Width = new GridLength(17, GridUnitType.Pixel);
             ColumnDefinition c2 = new ColumnDefinition();
-            c2.MinWidth = width - 25;
+            c2.MinWidth = width - 15;
             grid1.ColumnDefinitions.Add(c1);
             grid1.ColumnDefinitions.Add(c2);
             grid1.Children.Add(CloseButton);
