@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -13,6 +17,7 @@ namespace Safali
     public class API
     {
         #region Win32API
+        #region Define
         public const int WS_BORDER = 8388608;
         public const int WS_DLGFRAME = 4194304;
         public const int WS_CAPTION = WS_BORDER | WS_DLGFRAME;
@@ -20,18 +25,26 @@ namespace Safali
         public const int WS_THICKFRAME = 262144;
         public const int WS_MINIMIZE = 536870912;
         public const int WS_MAXIMIZEBOX = 65536;
+        public const int WS_MINIMIZEBOX = 0x20000; //minimize button
         public const int GWL_STYLE = -16;
         public const int GWL_EXSTYLE = -20;
         public const int WS_EX_DLGMODALFRAME = 0x1;
         public const int SWP_NOMOVE = 0x2;
         public const int SWP_NOSIZE = 0x1;
         public const int SWP_FRAMECHANGED = 0x20;
-        public const uint MF_BYPOSITION = 0x400;
-        public const uint MF_REMOVE = 0x1000;
+        public const int MF_BYPOSITION = 0x400;
+        public const int MF_REMOVE = 0x1000;
         public const int SWP_NOZORDER = 0x0004;
         public const int SWP_NOACTIVATE = 0x0010;
         public const int SW_MAXIMIZE = 3;
         public const int SW_MINIMIZE = 6;
+        public const int SWP_SHOWWINDOW = 0x0040;
+        public const int SWP_ASYNCWINDOWPOS = 0x4000;
+        public const int HWND_TOP = 0;
+        public const int SW_SHOW = 5;
+        public const int SW_RESTORE = 9;
+        public const int SPI_GETFOREGROUNDLOCKTIMEOUT = 0x2000;
+        public const int SPI_SETFOREGROUNDLOCKTIMEOUT = 0x2001;
         [DllImport("user32.dll", SetLastError = true)]
         public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
         [DllImport("user32.dll")]
@@ -47,6 +60,75 @@ namespace Safali
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
         public static extern IntPtr GetParent(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsIconic(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        public static extern uint GetWindowThreadProcessId(
+            IntPtr hWnd, IntPtr ProcessId);
+        [DllImport("kernel32.dll")]
+        public static extern uint GetCurrentThreadId();
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AttachThreadInput(
+            uint idAttach, uint idAttachTo, bool fAttach);
+        [DllImport("user32.dll", EntryPoint = "SystemParametersInfo",
+            SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SystemParametersInfoGet(
+            uint action, uint param, ref uint vparam, uint init);
+        [DllImport("user32.dll", EntryPoint = "SystemParametersInfo",
+            SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SystemParametersInfoSet(
+            uint action, uint param, uint vparam, uint init);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool BringWindowToTop(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        static extern IntPtr SetFocus(IntPtr hWnd);
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowPos(IntPtr hWnd,
+            int hWndInsertAfter, int x, int y, int cx, int cy, int uFlags);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern int GetWindowTextLength(IntPtr hWnd);
+        #endregion
+
+        public static string GetWindowTitle(IntPtr hWnd)
+        {
+            var length = GetWindowTextLength(hWnd) + 1;
+            var title = new StringBuilder(length);
+            GetWindowText(hWnd, title, length);
+            return title.ToString();
+        }
+
+        public static async Task DownloadFileAsync(string dlUrl, string dlPath)
+        {
+            HttpClient client = new HttpClient();
+            var response = await client.GetAsync(dlUrl);
+            if (response.StatusCode != System.Net.HttpStatusCode.OK) return;
+            if (File.Exists(dlPath))
+                    File.WriteAllText(dlPath, "");
+            using (var stream = await response.Content.ReadAsStreamAsync())
+            {
+                using (var outStream = File.Create(dlPath))
+                {
+                    stream.CopyTo(outStream);
+                }
+            }
+        }
+
         public static void MakeExternalWindowBorderless(IntPtr MainWindowHandle)
         {
             int Style = 0;
@@ -62,13 +144,47 @@ namespace Safali
             SetWindowPos(MainWindowHandle, new IntPtr(0), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
         }
 
-        public static void ChangeWindowStatus(IntPtr hwnd, int windowStatus)
+        public static void ActiveWindow(IntPtr hWnd)
         {
-            ShowWindow(hwnd, windowStatus);
+            if (hWnd == IntPtr.Zero)
+            {
+                return;
+            }
+            if (IsIconic(hWnd))
+            {
+                ShowWindowAsync(hWnd, SW_RESTORE);
+            }
+            IntPtr forehWnd = GetForegroundWindow();
+            if (forehWnd == hWnd)
+            {
+                return;
+            }
+            uint foreThread = GetWindowThreadProcessId(forehWnd, IntPtr.Zero);
+            uint thisThread = GetCurrentThreadId();
+            uint timeout = 200000;
+            if (foreThread != thisThread)
+            {
+                SystemParametersInfoGet(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, ref timeout, 0);
+                SystemParametersInfoSet(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, 0, 0);
+                AttachThreadInput(thisThread, foreThread, true);
+            }
+            SetForegroundWindow(hWnd);
+            SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS);
+            BringWindowToTop(hWnd);
+            ShowWindowAsync(hWnd, SW_SHOW);
+            SetFocus(hWnd);
+
+            if (foreThread != thisThread)
+            {
+                SystemParametersInfoSet(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, timeout, 0);
+                AttachThreadInput(thisThread, foreThread, false);
+            }
         }
         #endregion
 
-        private static FormattedText CreateFormatedText(string s, double width, TextAlignment align, MainWindow parent)
+        #region TabHeader
+        public static FormattedText CreateFormatedText(string s, double width, TextAlignment align, MainWindow parent)
         {
             FormattedText fmtText = new FormattedText(
                 s,
@@ -81,7 +197,6 @@ namespace Safali
             fmtText.TextAlignment = align;
             return fmtText;
         }
-
         public static Grid makeTabHeader(MainWindow parent, string text = "新しいタブ", bool hideCloseBtn = true, string faviconUrl = "", int width = 0, string url = "", bool isPinned = false)
         {
             //CloseButton
@@ -110,6 +225,7 @@ namespace Safali
             Favicon.HorizontalAlignment = HorizontalAlignment.Center;
             Favicon.VerticalAlignment = VerticalAlignment.Center;
             Favicon.Margin = new Thickness(0, 0, 0, -3);
+            
             VisualBrush vb = new VisualBrush();
             var border = new Border();
             border.Width = Favicon.ActualWidth;
@@ -191,5 +307,6 @@ namespace Safali
             grid1.Children.Add(headerText);
             return grid1;
         }
+        #endregion
     }
 }

@@ -1,20 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Forms.Integration;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
-using System.Web;
-using System.Windows.Forms.Integration;
-using System.Runtime.CompilerServices;
-using System.Windows.Data;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Xml.Linq;
+using SharpVectors.Converters;
+using SharpVectors.Renderers.Wpf;
+using System.Linq;
+using System.Net;
 
 namespace Safali
 {
@@ -31,6 +38,8 @@ namespace Safali
         Debug debug;
         ScrollViewer scv;
         List<bool> isShowDevTools = new List<bool> { };
+        private DispatcherTimer YouTubeCurrentTimeWatcher;
+        List<int> YouTubeCurrentTime = new List<int> { };
         #endregion
 
         #region ボタン類
@@ -69,7 +78,7 @@ namespace Safali
         private async void Window_Loaded(object s, RoutedEventArgs e)
         {
             debug = new Debug(this);
-            makenewTab();
+            makenewTab("https://freasearch.org/");
             ((wv2s.Children[tab.SelectedIndex] as Grid).Children[0] as WindowsFormsHost).Child = (((wv2s.Children[tab.SelectedIndex] as Grid).Children[0] as WindowsFormsHost).Child as System.Windows.Forms.Panel);
             await Task.Delay(1000);
             await getSelectedWebView().EnsureCoreWebView2Async();
@@ -79,12 +88,35 @@ namespace Safali
             address.TextAlignment = TextAlignment.Center;
             addressApply();
             this.Icon = BitmapFrame.Create(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Safali.icon.png"));
+            YouTubeCurrentTimeWatcher = new DispatcherTimer(DispatcherPriority.Background);
+            YouTubeCurrentTimeWatcher.Interval = new TimeSpan(0, 0, 1);
+            YouTubeCurrentTimeWatcher.Tick += async (sender, eve) =>
+            {
+                if (getSelectedWebView().Source.ToString().StartsWith("https://www.youtube.com/watch?v="))
+                {
+                    var time = double.Parse(await getSelectedWebView().CoreWebView2.ExecuteScriptAsync("document.getElementsByClassName('video-stream')[0].currentTime"));
+                    YouTubeCurrentTime[tab.SelectedIndex] = Convert.ToInt32(time);
+                    Log(YouTubeCurrentTime[tab.SelectedIndex]);
+                }
+            };
+            YouTubeCurrentTimeWatcher.Start();
+        }
+
+        private void Window_Activated(object sender, EventArgs e)
+        {
+            Log("Window Activated");
+        }
+
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            Log("Window Deactivated");
         }
 
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);
             debug.Close();
+            YouTubeCurrentTimeWatcher.Stop();
             if (_process != null)
             {
                 foreach (var item in _process)
@@ -155,6 +187,26 @@ namespace Safali
             address.TextAlignment = TextAlignment.Center;
             addressApply();
         }
+
+        private void address_PreviewDrop(object sender, DragEventArgs e)
+        {
+            Log("address_PreviewDrop");
+            address.Text = "";
+            address.SelectAll();
+        }
+
+        private void address_PreviewDragEnter(object sender, DragEventArgs e)
+        {
+            Log("address_PreviewDragEnter");
+            address.SelectAll();
+        }
+
+        private void address_PreviewDragOver(object sender, DragEventArgs e)
+        {
+            Log("address_PreviewDragOver");
+            address.SelectAll();
+            e.Handled = true;
+        }
         #endregion
 
         #region タブ
@@ -180,6 +232,7 @@ namespace Safali
             AutoRisizeTab();
         }
 
+        WebClient downloadClient = null;
         private void tab_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             /*if (_process != null)
@@ -187,13 +240,45 @@ namespace Safali
             if (tab.SelectedIndex >= 0 && isShowDevTools[tab.SelectedIndex])
                 ShowDevTools();
             */
+            if (tab.Items.Count == 1)
+            {
+                tab.Visibility = Visibility.Collapsed;
+                wv2s.Margin = new Thickness(0, 24, 0, 0);
+            }
+            else
+            {
+                tab.Visibility = Visibility.Visible;
+                wv2s.Margin = new Thickness(0, 54, 0, 0);
+            }
             tab.Dispatcher.BeginInvoke(new Action(async () =>
             {
                 int i = 0;
                 foreach (TabItem item in tab.Items)
                 {
                     await ((wv2s.Children[i] as Grid).Children[2] as WebView2).EnsureCoreWebView2Async();
-                    item.Header = API.makeTabHeader(this, ((wv2s.Children[i] as Grid).Children[2] as WebView2).CoreWebView2.DocumentTitle ?? "新しいタブ", item != tab.SelectedItem, ((wv2s.Children[i] as Grid).Children[2] as WebView2).CoreWebView2.FaviconUri, (int)(item.Width), ((wv2s.Children[i] as Grid).Children[2] as WebView2).Source.ToString());
+                    WebView2 wv2 = (wv2s.Children[i] as Grid).Children[2] as WebView2;
+                    if (wv2.CoreWebView2.FaviconUri.ToLower().EndsWith(".svg"))
+                    {
+                        WpfDrawingSettings settings = new WpfDrawingSettings();
+                        settings.IncludeRuntime = true;
+                        settings.TextAsGeometry = false;
+                        string svgTestFile = $@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{wv2.Source.DnsSafeHost}.svg";
+                        WebClient wc = new WebClient();
+                        wc.DownloadFile(wv2.CoreWebView2.FaviconUri, svgTestFile);
+                        wc.Dispose();
+                        ImageSvgConverter converter = new ImageSvgConverter(settings);
+                        converter.EncoderType = ImageEncoderType.PngBitmap;
+                        converter.Convert(svgTestFile, $@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{wv2.Source.DnsSafeHost}.png");
+                        converter.Dispose();
+                        var rndstr = RandomString(12);
+
+                        File.Copy($@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{wv2.Source.DnsSafeHost}.png", Path.GetTempPath() + rndstr + ".png");
+                        item.Header = API.makeTabHeader(this, wv2.CoreWebView2.DocumentTitle ?? "新しいタブ", item != tab.SelectedItem, $@"{Path.GetTempPath() + rndstr + ".png"}", (int)(item.Width), wv2.Source.ToString());
+                    }
+                    else
+                    {
+                        item.Header = API.makeTabHeader(this, wv2.CoreWebView2.DocumentTitle ?? "新しいタブ", item != tab.SelectedItem, wv2.CoreWebView2.FaviconUri, (int)(item.Width), wv2.Source.ToString());
+                    }
                     i++;
                 }
                 AutoRisizeTab();
@@ -218,6 +303,7 @@ namespace Safali
                 }
             }));
             applyIcon();
+            tabclosing = false;
         }
 
         public void applyIcon()
@@ -232,7 +318,28 @@ namespace Safali
                     {
                         try
                         {
-                            item.Header = API.makeTabHeader(this, wv2.CoreWebView2.DocumentTitle, item != tab.SelectedItem, wv2.CoreWebView2.FaviconUri, (int)(item.Width), wv2.Source.ToString());
+                            if (wv2.CoreWebView2.FaviconUri.ToLower().EndsWith(".svg"))
+                            {
+                                WpfDrawingSettings settings = new WpfDrawingSettings();
+                                settings.IncludeRuntime = true;
+                                settings.TextAsGeometry = false;
+                                string svgTestFile = $@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{wv2.Source.DnsSafeHost}.svg";
+                                System.Net.WebClient wc = new System.Net.WebClient();
+                                wc.DownloadFile(wv2.CoreWebView2.FaviconUri, svgTestFile);
+                                wc.Dispose();
+                                File.Delete($@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{wv2.Source.DnsSafeHost}.png");
+                                ImageSvgConverter converter = new ImageSvgConverter(settings);
+                                converter.EncoderType = ImageEncoderType.PngBitmap;
+                                converter.Convert(svgTestFile, $@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{wv2.Source.DnsSafeHost}.png");
+                                converter.Dispose();
+                                var rndstr = RandomString(12);
+                                File.Copy($@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{wv2.Source.DnsSafeHost}.png", Path.GetTempPath() + rndstr + ".png");
+                                item.Header = API.makeTabHeader(this, wv2.CoreWebView2.DocumentTitle, item != tab.SelectedItem, $@"{Path.GetTempPath() + rndstr + ".png"}", (int)(item.Width), wv2.Source.ToString());
+                            }
+                            else
+                            {
+                                item.Header = API.makeTabHeader(this, wv2.CoreWebView2.DocumentTitle, item != tab.SelectedItem, wv2.CoreWebView2.FaviconUri, (int)(item.Width), wv2.Source.ToString());
+                            }
                         }
                         catch { }
                     }
@@ -280,6 +387,7 @@ namespace Safali
             webview.NavigationCompleted += WebView2_NavigationCompleted;
             webview.SourceChanged += WebView2_SourceChanged;
             webview.KeyDown += WebView2_KeyDown;
+            Panel.SetZIndex(webview, 1);
             Grid.SetColumn(webview, 0);
             var grid = new Grid();
             grid.Visibility = Visibility.Hidden;
@@ -312,6 +420,7 @@ namespace Safali
             isShowDevTools.Add(false);
             tab.Items.Add(tabitem);
             _process.Add(null);
+            YouTubeCurrentTime.Add(0);
             tab.SelectedItem = tabitem;
             NewTabBtn.IsEnabled = false;
             address.Text = webview.Source.ToString();
@@ -320,6 +429,7 @@ namespace Safali
             grid.Visibility = Visibility.Visible;
         }
 
+        bool tabclosing = false;
         public void closeTab()
         {
             if (wv2s.Children.Count <= 1)
@@ -339,6 +449,7 @@ namespace Safali
                 _process[delindex].Refresh();
                 _process[delindex].Close();
                 _process.RemoveAt(delindex);
+                tabclosing = true;
                 tab.SelectedIndex = tab.Items.Count - delindex;
             }
             catch { }
@@ -428,6 +539,7 @@ namespace Safali
             (sender as WebView2).CoreWebView2.ContainsFullScreenElementChanged += CoreWebView2_ContainsFullScreenElementChanged;
             (sender as WebView2).CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
             (sender as WebView2).CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
+            (sender as WebView2).CoreWebView2.FaviconChanged += CoreWebView2_FaviconChanged;
             if (sender as WebView2 == getSelectedWebView())
                 address.Text = (sender as WebView2).Source.ToString();
             applyIcon();
@@ -444,22 +556,43 @@ namespace Safali
             var minsize = 215;
             if (size < minsize)
                 size = minsize;
-            (/*parent ?? */(tab.SelectedItem as TabItem)).Header = API.makeTabHeader(this, title, (sender as WebView2) != getSelectedWebView(), (sender as WebView2).CoreWebView2.FaviconUri, (int)size, (sender as WebView2).Source.ToString());
+            Log((sender as WebView2).CoreWebView2.FaviconUri);
+
+            if ((sender as WebView2).CoreWebView2.FaviconUri.ToLower().EndsWith(".svg"))
+            {
+                WpfDrawingSettings settings = new WpfDrawingSettings();
+                settings.IncludeRuntime = true;
+                settings.TextAsGeometry = false;
+                string svgTestFile = $@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{(sender as WebView2).Source.DnsSafeHost}.svg";
+                System.Net.WebClient wc = new System.Net.WebClient();
+                wc.DownloadFile((sender as WebView2).CoreWebView2.FaviconUri, svgTestFile);
+                wc.Dispose();
+                //File.Delete($@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{(sender as WebView2).Source.DnsSafeHost}.png");
+                ImageSvgConverter converter = new ImageSvgConverter(settings);
+                converter.EncoderType = ImageEncoderType.PngBitmap;
+                converter.Convert(svgTestFile, $@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{(sender as WebView2).Source.DnsSafeHost}.png");
+                converter.Dispose();
+                var rndstr = RandomString(12);
+                File.Copy($@"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\{(sender as WebView2).Source.DnsSafeHost}.png", Path.GetTempPath() + rndstr + ".png");
+                (tab.SelectedItem as TabItem).Header = API.makeTabHeader(this, title, (sender as WebView2) != getSelectedWebView(), $@"{Path.GetTempPath() + rndstr + ".png"}", (int)size, (sender as WebView2).Source.ToString());
+            }
+            else
+            {
+                /*await API.DownloadFileAsync((sender as WebView2).CoreWebView2.FaviconUri, Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\" + (sender as WebView2).Source.DnsSafeHost + @"." + Path.GetExtension((sender as WebView2).CoreWebView2.FaviconUri));
+                var rndstr = RandomString(12);
+                File.Copy(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\" + (sender as WebView2).Source.DnsSafeHost + @"." + Path.GetExtension((sender as WebView2).CoreWebView2.FaviconUri), Path.GetTempPath() + rndstr + Path.GetExtension((sender as WebView2).CoreWebView2.FaviconUri));
+                Log(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\" + (sender as WebView2).Source.DnsSafeHost + @"\" + Path.GetExtension((sender as WebView2).CoreWebView2.FaviconUri));
+                await (tab.SelectedItem as TabItem).Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    (tab.SelectedItem as TabItem).Header = API.makeTabHeader(this, title, (sender as WebView2) != getSelectedWebView(), Path.GetTempPath() + rndstr + Path.GetExtension((sender as WebView2).CoreWebView2.FaviconUri), (int)size, (sender as WebView2).Source.ToString());
+                }));
+                */
+                (tab.SelectedItem as TabItem).Header = API.makeTabHeader(this, title, (sender as WebView2) != getSelectedWebView(), ((sender as WebView2).CoreWebView2.FaviconUri), (int)size, (sender as WebView2).Source.ToString());
+            }
             if ((sender as WebView2) == getSelectedWebView())
                 this.Title = ((sender as WebView2).CoreWebView2.DocumentTitle ?? "新しいタブ") + " - Safali";
             AutoRisizeTab();
-        }
 
-        private void CoreWebView2_DocumentTitleChanged(object sender, object e)
-        {
-            Log("Title Changed");
-            var title = getSelectedWebView().CoreWebView2.DocumentTitle;
-            var size = tab.ActualWidth / tab.Items.Count;
-            var minsize = 215;
-            if (size < minsize)
-                size = minsize;
-            (tab.SelectedItem as TabItem).Header = API.makeTabHeader(this, title, (sender as CoreWebView2) != getSelectedWebView().CoreWebView2, getSelectedWebView().CoreWebView2.FaviconUri, (int)size, getSelectedWebView().Source.ToString());
-            this.Title = (title ?? "新しいタブ") + " - Safali";
         }
 
         private async void WebView2_SourceChanged(object sender, CoreWebView2SourceChangedEventArgs e)
@@ -501,16 +634,6 @@ namespace Safali
             address.Text = (sender as WebView2).Source.ToString();
         }
 
-        private void CoreWebView2_NewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
-        {
-            if (isloaded)
-            {
-                makenewTab(e.Uri);
-            }
-            isloaded = false;
-            e.Handled = true;
-        }
-
         private void WebView2_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.F12 || e.Key == Key.I && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
@@ -532,6 +655,41 @@ namespace Safali
                 makenewTab();
             }
         }
+        
+        private async void CoreWebView2_FaviconChanged(object sender, object e)
+        {
+            var cwv2 = (sender as CoreWebView2);
+            string value = cwv2.FaviconUri;
+            Log(value);
+            Stream stream = await cwv2.GetFaviconAsync(CoreWebView2FaviconImageFormat.Png);
+            if (stream == null || stream.Length == 0)
+                this.Icon = null;
+            else
+                this.Icon = BitmapFrame.Create(stream);
+        }
+
+        private void CoreWebView2_DocumentTitleChanged(object sender, object e)
+        {
+            Log("Title Changed");
+            var title = getSelectedWebView().CoreWebView2.DocumentTitle;
+            var size = tab.ActualWidth / tab.Items.Count;
+            var minsize = 215;
+            if (size < minsize)
+                size = minsize;
+            (tab.SelectedItem as TabItem).Header = API.makeTabHeader(this, title, (sender as CoreWebView2) != getSelectedWebView().CoreWebView2, getSelectedWebView().CoreWebView2.FaviconUri, (int)size, getSelectedWebView().Source.ToString());
+            this.Title = (title ?? "新しいタブ") + " - Safali";
+        }
+
+        private void CoreWebView2_NewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
+        {
+            if (isloaded)
+            {
+                makenewTab(e.Uri);
+            }
+            isloaded = false;
+            e.Handled = true;
+        }
+
         #endregion
 
         #region DevTools
@@ -582,6 +740,7 @@ namespace Safali
                 {
                     _process[tab.SelectedIndex] = p;
                     IntPtr windowHandle = p.MainWindowHandle;
+                    ((wv2s.Children[tab.SelectedIndex] as Grid).Children[0] as WindowsFormsHost).Margin = new Thickness(0, 20, 0, 0);
                     API.SetWindowLong(windowHandle, API.GWL_STYLE, (int)(API.GetWindowLong(windowHandle, API.GWL_STYLE) & (0xFFFFFFFF ^ API.WS_SYSMENU)));
                     API.SetParent(p.MainWindowHandle, (((wv2s.Children[tab.SelectedIndex] as Grid).Children[0] as WindowsFormsHost).Child as System.Windows.Forms.Panel).Handle);
                     int style = API.GetWindowLong(_process[tab.SelectedIndex].MainWindowHandle, API.GWL_STYLE);
@@ -621,16 +780,26 @@ namespace Safali
         #endregion
 
         #region その他色々
-
-        public void Log(object content,
+        public void Log(object content = null,
                       [CallerMemberName] string callerMemberName = "",
-                      [CallerFilePath] string callerFilePath = "",
                       [CallerLineNumber] int callerLineNumber = 0)
         {
-            debug.log.Text += content.ToString() + "\n";
-            debug.log.Text += ($"呼び出し元: {callerMemberName}\n");
-            debug.log.Text += ($"呼び出し元ファイル行番号: {callerLineNumber}\n\n");
-            debug.log.ScrollToEnd();
+            if (debug != null)
+            {
+                debug.log.Text += content.ToString() + "\n";
+                debug.log.Text += ($"呼び出し元: {callerMemberName}\n");
+                debug.log.Text += ($"呼び出し元ファイル行番号: {callerLineNumber}\n\n");
+                debug.log.ScrollToEnd();
+            }
+        }
+
+        private static Random random = new Random();
+
+        public static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         public WebView2 getSelectedWebView()
@@ -640,13 +809,9 @@ namespace Safali
                 var grid = ((Grid)wv2s.Children[tab.SelectedIndex]);
                 WebView2 webview = null;
                 if (grid.Children.Count != 0)
-                {
                     webview = grid.Children[2] as WebView2;
-                }
                 else if (fullscreen.Children.Count != 0)
-                {
                     webview = fullscreen.Children[0] as WebView2;
-                }
                 return webview;
             }
             else
@@ -654,25 +819,15 @@ namespace Safali
                 return null;
             }
         }
+
+        public IntPtr Handle
+        {
+            get
+            {
+                var helper = new System.Windows.Interop.WindowInteropHelper(this);
+                return helper.Handle;
+            }
+        }
         #endregion
-        private void address_PreviewDrop(object sender, DragEventArgs e)
-        {
-            Log("address_PreviewDrop");
-            address.Text = "";
-            address.SelectAll();
-        }
-
-        private void address_PreviewDragEnter(object sender, DragEventArgs e)
-        {
-            Log("address_PreviewDragEnter");
-            address.SelectAll();
-        }
-
-        private void address_PreviewDragOver(object sender, DragEventArgs e)
-        {
-            Log("address_PreviewDragOver");
-            address.SelectAll();
-            e.Handled = true;
-        }
     }
 }

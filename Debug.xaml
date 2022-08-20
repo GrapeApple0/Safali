@@ -13,5 +13,7 @@
         <CheckBox x:Name="DevTools" Content="DevTools" HorizontalAlignment="Left" Margin="143,262,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="DevTools_Click" />
         <CheckBox x:Name="AlwaysTop" Content="AlwaysTop" HorizontalAlignment="Left" Margin="215,261,0,0" VerticalAlignment="Top" Foreground="#FFCCCCCC" Click="AlwaysTop_Click" />
         <Button x:Name="GetTitle" Content="GetTitle" HorizontalAlignment="Left" Margin="2,284,0,0" VerticalAlignment="Top" Width="58" Click="GetTitle_Click"/>
+        <TextBox x:Name="jscode" Margin="0,0,30,77" Background="#FF333333" Foreground="#FFD4D4D4" VerticalAlignment="Bottom"/>
+        <Button x:Name="Runjs" Content="Run" HorizontalAlignment="Left" Margin="315,314,0,0" VerticalAlignment="Top" Click="Runjs_Click"/>
     </Grid>
 </Window>

@@ -46,5 +46,12 @@ namespace Safali
         {
             mainWindow.Log(mainWindow.getSelectedWebView().CoreWebView2.DocumentTitle);
         }
+
+        private async void Runjs_Click(object sender, RoutedEventArgs e)
+        {
+            //document.getElementsByClassName('ytp - time - current')[0].innerText
+            string result = await mainWindow.getSelectedWebView().CoreWebView2.ExecuteScriptAsync(jscode.Text);
+            mainWindow.Log((result));
+        }
     }
 }

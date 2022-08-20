@@ -9,7 +9,8 @@
         Title="新しいウィンドウ - Safali"
         Height="800" Width="1200"
         MinWidth="600" MinHeight="400"
-        Loaded="Window_Loaded">
+        UseLayoutRounding="True"
+        Loaded="Window_Loaded" Activated="Window_Activated" Deactivated="Window_Deactivated">
     <Window.Resources>
         <SolidColorBrush x:Key="NormalButtonBrush" Color="#424242"/>
         <SolidColorBrush x:Key="NormalBackgroundBrush" Color="#FFD8D8D8"/>
@@ -54,6 +55,9 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+        <Style TargetType="{x:Type Image}">
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="Unspecified" />
         </Style>
     </Window.Resources>
 
@@ -184,7 +188,7 @@
                 </Button.Content>
             </Button>
         </Grid>
-        <Grid VerticalAlignment="Stretch">
+        <Grid VerticalAlignment="Top">
             <Grid HorizontalAlignment="Stretch" Margin="175,4,155,0" VerticalAlignment="Top">
                 <local:ClickSelectTextBox x:Name="address" 
                          TextWrapping="NoWrap"
@@ -194,12 +198,12 @@
                          Background="#FFEDEDED"
                          BorderThickness="1,1,0,1"
                          Margin="0,0,7,0"
-                         Height="18"
+                         Height="19"
                          TextAlignment="Left"
                          GotFocus="address_GotFocus"
                          AllowDrop="True"
                          LostFocus="address_LostFocus"
-                         FontFamily="Meiryo" PreviewDrop="address_PreviewDrop" PreviewDragEnter="address_PreviewDragEnter" PreviewDragOver="address_PreviewDragOver">
+                         FontFamily="Meiryo" PreviewDrop="address_PreviewDrop" PreviewDragEnter="address_PreviewDragEnter" PreviewDragOver="address_PreviewDragOver" VerticalContentAlignment="Center" VerticalScrollBarVisibility="Disabled">
                     <local:ClickSelectTextBox.Resources>
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="CornerRadius" Value="3,0,0,3"/>
@@ -228,8 +232,8 @@
                     HorizontalAlignment="Right"
                     VerticalAlignment="Top"
                     Margin="0,4,144,0"
-                    Width="18"
-                    Height="18"
+                    Width="21"
+                    Height="19"
                     Click="Reload">
                 <Button.Content>
                     <iconPacks:PackIconBootstrapIcons Width="12"
@@ -289,15 +293,8 @@
                 </Button.Content>
             </Button>
         </Grid>
-        <Grid x:Name="suggest"
-                   Margin="175,19,144,0" Height="400" VerticalAlignment="Top" Visibility="Collapsed">
-            <Border BorderBrush="#FFABADB3" BorderThickness="1,1,1,1" Margin="0,1,0,-1" CornerRadius="0,0,3,3" Background="#FFC5C5C5">
-
-            </Border>
-        </Grid>
         <Grid x:Name="fullscreen" >
 
         </Grid>
-        
     </Grid>
 </Window>
