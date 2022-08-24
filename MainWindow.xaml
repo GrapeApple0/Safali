@@ -10,20 +10,61 @@
         Height="800" Width="1200"
         MinWidth="600" MinHeight="400"
         UseLayoutRounding="True"
-        Loaded="Window_Loaded" Activated="Window_Activated" Deactivated="Window_Deactivated" WindowState="Minimized" ShowInTaskbar="False">
+        Loaded="Window_Loaded" Activated="Window_Activated" Deactivated="Window_Deactivated">
     <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/IconDictionary.xaml"/>
-                <ResourceDictionary Source="/StylesDictionary.xaml"/>
-                <ResourceDictionary Source="/WindowChrome.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
+        <SolidColorBrush x:Key="NormalButtonBrush" Color="#424242"/>
+        <SolidColorBrush x:Key="NormalBackgroundBrush" Color="#FFD8D8D8"/>
+        <SolidColorBrush x:Key="HoverButtonBrush" Color="#424242"/>
+        <SolidColorBrush x:Key="HoverBackgroundBrush" Color="#FFCACACA"/>
+        <Style x:Key="HoverButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Foreground" Value="{StaticResource NormalButtonBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Name="HoverButtonBorder" BorderThickness="0.25" CornerRadius="2" BorderBrush="#FFCACACA" Background="{StaticResource NormalBackgroundBrush}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="HoverButtonBorder" Property="BorderBrush" Value="{StaticResource HoverButtonBrush}" />
+                                <Setter TargetName="HoverButtonBorder" Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource HoverButtonBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="HoverButtonBorder" Property="Background" Value="{StaticResource NormalBackgroundBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ReloadBtn" TargetType="{x:Type Button}">
+            <Setter Property="Foreground" Value="{StaticResource NormalButtonBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border 
+                            Name="ReloadBtnBorder"
+                            BorderThickness="0,1,1,1"
+                            CornerRadius="0 3 3 0"
+                            BorderBrush="#FFABADB3"
+                            Background="#FFEDEDED">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type Image}">
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="Unspecified" />
+        </Style>
     </Window.Resources>
+
     <Grid>
         <Grid x:Name="main" Background="White">
-            <Grid Margin="0,6,0,0">
-                <TabControl x:Name="tab" Margin="-4,30,21,0" IsTabStop="False" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged" VerticalAlignment="Top" Height="22">
+            <Grid>
+                <TabControl x:Name="tab" Margin="-2,30,0,0" IsTabStop="False" SelectionChanged="tab_SelectionChanged" SizeChanged="tab_SizeChanged" VerticalAlignment="Top" Height="22">
                     <TabControl.Resources>
                         <Style TargetType="{x:Type TabItem}">
                             <Setter Property="Template">
@@ -79,7 +120,7 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition />
                                 </Grid.RowDefinitions>
-                                <ScrollViewer x:Name="srlvew" ScrollViewer.CanContentScroll="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Height="24" VerticalAlignment="Center" Visibility="Visible" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" Margin="0,0,0,-2" Background="#FFA5A5A5" Initialized="srlvew_Initialized" >
+                                <ScrollViewer x:Name="srlvew" ScrollViewer.CanContentScroll="True"  HorizontalScrollBarVisibility="Hidden"  VerticalScrollBarVisibility="Disabled" Height="24" VerticalAlignment="Center" Visibility="Visible" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" Margin="0,0,0,-2" Background="#FFA5A5A5" Initialized="srlvew_Initialized" >
                                     <ScrollViewer.Resources>
                                         <Style x:Key="RepeatButtonTransparent" TargetType="{x:Type RepeatButton}">
                                             <Setter Property="OverridesDefaultStyle" Value="true"/>
@@ -130,12 +171,9 @@
                         </ControlTemplate>
                     </TabControl.Template>
                 </TabControl>
-                <Border x:Name="newTabBorder" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,30,0,0" Background="#FFD4D4D4">
-                    <Button x:Name="NewTabBtn" Click="NewTab" Style="{StaticResource AddTabButtonStyle}">
-                        <Image Source="{StaticResource plus}" Stretch="Fill" Width="24" Height="24" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-                    </Button>
-                </Border>
-                <Grid x:Name="wv2s" Grid.Column="0" Margin="0,54,0,0"/>
+                <Grid x:Name="wv2s" Grid.Column="0" Margin="0,54,0,0">
+
+                </Grid>
             </Grid>
             <!--WindowsFormsHost Grid.Column="2" Margin="0,55,0,0" HorizontalAlignment="Stretch" SizeChanged="windowsFormsHost1_SizeChanged" Background="White" Visibility="Collapsed"/>
             <GridSplitter Grid.Column="1" Background="#FFD4D4D4" Width="7" HorizontalAlignment="Stretch" Margin="0,55,0,-2" Foreground="{x:Null}" Visibility="Collapsed" /-->
@@ -154,24 +192,18 @@
             <Grid HorizontalAlignment="Stretch" Margin="175,4,155,0" VerticalAlignment="Top">
                 <local:ClickSelectTextBox x:Name="address" 
                          TextWrapping="NoWrap"
+                         Text="ExampleURL テスト"
                          VerticalAlignment="Center"
                          KeyDown="address_KeyDown"
-                         Background="#FFDEDEDE"
+                         Background="#FFEDEDED"
                          BorderThickness="1,1,0,1"
                          Margin="0,0,7,0"
-                         Height="22"
+                         Height="19"
                          TextAlignment="Left"
                          GotFocus="address_GotFocus"
                          AllowDrop="True"
                          LostFocus="address_LostFocus"
-                         FontFamily="Meiryo"
-                         PreviewDrop="address_PreviewDrop"
-                         PreviewDragEnter="address_PreviewDragEnter"
-                         PreviewDragOver="address_PreviewDragOver"
-                         VerticalContentAlignment="Center"
-                         VerticalScrollBarVisibility="Disabled"
-                         Tag="URLまたは検索したいワードを入力"
-                         Style="{StaticResource watermarkTextbox}" FontSize="14" Foreground="#FF313131">
+                         FontFamily="Meiryo" PreviewDrop="address_PreviewDrop" PreviewDragEnter="address_PreviewDragEnter" PreviewDragOver="address_PreviewDragOver" VerticalContentAlignment="Center" VerticalScrollBarVisibility="Disabled">
                     <local:ClickSelectTextBox.Resources>
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="CornerRadius" Value="3,0,0,3"/>
@@ -201,32 +233,63 @@
                     VerticalAlignment="Top"
                     Margin="0,4,144,0"
                     Width="21"
-                    Height="22"
+                    Height="19"
                     Click="Reload">
                 <Button.Content>
-                    <Image Source="{StaticResource arrow_counterclockwise}" Margin="1,2,0,1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <iconPacks:PackIconBootstrapIcons Width="12"
+                                       Height="12"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Kind="ArrowCounterclockwise" />
+                </Button.Content>
+            </Button>
+            <Button 
+        x:Name="NewTabBtn" 
+        HorizontalAlignment="Right" 
+        VerticalAlignment="Top" 
+        Height="17" Width="17" 
+        Margin="0,4,90,0" 
+        Click="NewTab"
+        Style="{StaticResource HoverButtonStyle}">
+                <Button.Content>
+                    <iconPacks:PackIconBootstrapIcons 
+                                       Width="13"
+                                       Height="13"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Kind="Plus" Background="Transparent" />
                 </Button.Content>
             </Button>
             <Button 
         x:Name="Back" 
         HorizontalAlignment="Left" 
         VerticalAlignment="Top" 
-        Height="20" Width="20" 
+        Height="17" Width="17" 
         Margin="104,5,0,0" 
         Style="{StaticResource HoverButtonStyle}" Click="back">
                 <Button.Content>
-                    <Image Source="{StaticResource chevron_left}"/>
+                    <iconPacks:PackIconBootstrapIcons 
+                                       Width="13"
+                                       Height="13"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Kind="ChevronLeft" Background="Transparent" />
                 </Button.Content>
             </Button>
             <Button 
         x:Name="Forward" 
         HorizontalAlignment="Left" 
         VerticalAlignment="Top" 
-        Height="20" Width="20" 
+        Height="17" Width="17" 
         Margin="130,5,0,0" 
         Style="{StaticResource HoverButtonStyle}" Click="forward">
                 <Button.Content>
-                    <Image Source="{StaticResource chevron_right}" Width="18"/>
+                    <iconPacks:PackIconBootstrapIcons 
+                                       Width="13"
+                                       Height="13"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Kind="ChevronRight" Background="Transparent" />
                 </Button.Content>
             </Button>
         </Grid>

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -280,16 +279,6 @@ namespace Safali
                     Favicon.Source = new DrawingImage(drawingGroup);
                 }
             }
-            /*ParserContext context = new ParserContext();
-            context.XmlnsDictionary.Add("", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
-            context.XmlnsDictionary.Add("x", "http://schemas.microsoft.com/winfx/2006/xaml");
-            context.XmlnsDictionary.Add("svgc", "http://sharpvectors.codeplex.com/svgc/");
-            string Xaml = @"<Image Source=""{ svgc:SvgImage Source =./ favicon.svg }""/>";
-            Image rslt = XamlReader.Parse(Xaml,context) as Image;
-            if (faviconUrl.ToLower().EndsWith(".svg"))
-                inlineUIContainer.Child = Favicon;
-            else
-                inlineUIContainer.Child = rslt; */
             inlineUIContainer.Child = Favicon;
             //HeaderText
             var headerText = new TextBlock();
